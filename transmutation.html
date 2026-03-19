@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Chromatic Transmutation Apparatus — Est. MDCCCLXXXVII</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #e8dfc8;
+    --paper-dark: #d4c9a8;
+    --paper-darker: #bfad88;
+    --ink: #1a1208;
+    --ink-fade: #3d2e14;
+    --ink-light: #5c4a28;
+    --sepia: #8b6914;
+    --sepia-light: #c4982a;
+    --rust: #7a2d0a;
+    --border-gold: #9a7b2e;
+    --shadow: rgba(26,18,8,0.35);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: #2a1f0e;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(0,0,0,0.03) 28px, rgba(0,0,0,0.03) 29px),
+      radial-gradient(ellipse at 20% 50%, #3d2a10 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, #3d2a10 0%, transparent 60%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+    font-family: 'IM Fell English', serif;
+  }
+
+  .page {
+    position: relative;
+    width: 100%;
+    max-width: 820px;
+    background-color: var(--paper);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"),
+      repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(160,130,60,0.04) 3px, rgba(160,130,60,0.04) 4px),
+      repeating-linear-gradient(0deg, transparent 0, transparent 18px, rgba(160,130,60,0.035) 18px, rgba(160,130,60,0.035) 19px),
+      radial-gradient(ellipse at 30% 20%, rgba(255,235,180,0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(200,170,100,0.3) 0%, transparent 50%);
+    box-shadow:
+      0 0 0 1px var(--border-gold),
+      0 0 0 4px rgba(154,123,46,0.2),
+      0 0 0 5px var(--border-gold),
+      0 20px 60px rgba(0,0,0,0.6),
+      inset 0 0 80px rgba(180,140,60,0.15);
+    padding: 3rem 3.5rem 4rem;
+  }
+
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(80,50,10,0.25) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 0%, rgba(80,50,10,0.2) 0%, transparent 35%),
+      radial-gradient(ellipse at 0% 100%, rgba(80,50,10,0.3) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 100%, rgba(80,50,10,0.25) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .ornament-rule {
+    display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; color: var(--sepia);
+  }
+  .ornament-rule::before, .ornament-rule::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+  }
+  .ornament-rule span { font-size: 1.1rem; letter-spacing: 0.2em; }
+
+  .double-rule {
+    border: none;
+    border-top: 1.5px solid var(--border-gold);
+    box-shadow: 0 3px 0 var(--paper-dark), 0 4px 0 rgba(154,123,46,0.4);
+    margin: 1.5rem 0;
+  }
+
+  .masthead { text-align: center; padding-bottom: 1rem; }
+
+  .pub-line {
+    font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.35em;
+    color: var(--sepia); text-transform: uppercase; margin-bottom: 0.5rem;
+  }
+
+  .title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.9rem, 5vw, 3.2rem);
+    font-weight: 900; font-style: italic; color: var(--ink);
+    line-height: 1.05; letter-spacing: -0.01em; margin: 0.4rem 0;
+  }
+
+  .subtitle {
+    font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.3em;
+    color: var(--sepia); text-transform: uppercase; margin-top: 0.4rem;
+  }
+
+  .edition-badge {
+    display: inline-block; border: 1px solid var(--border-gold); color: var(--ink-light);
+    font-family: 'Cinzel', serif; font-size: 0.58rem; letter-spacing: 0.25em;
+    padding: 0.25rem 1rem; margin-top: 0.75rem; background: rgba(154,123,46,0.08);
+  }
+
+  .section-head {
+    font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.4em;
+    color: var(--sepia); text-transform: uppercase; text-align: center; margin: 1.5rem 0 1rem;
+  }
+
+  .notice {
+    border: 1px solid var(--border-gold); padding: 1rem 1.25rem;
+    background: rgba(154,123,46,0.06); position: relative; margin: 1rem 0 1.5rem;
+  }
+  .notice::before, .notice::after {
+    content: '❧'; position: absolute; top: 0.4rem; font-size: 0.85rem; color: var(--sepia-light);
+  }
+  .notice::before { left: 0.5rem; }
+  .notice::after  { right: 0.5rem; }
+  .notice p {
+    font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.85rem;
+    color: var(--ink-fade); line-height: 1.7; text-align: center;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border-gold); background: rgba(154,123,46,0.04);
+    padding: 2.5rem 2rem; text-align: center; cursor: pointer;
+    transition: background 0.3s, border-color 0.3s; position: relative; overflow: hidden;
+  }
+  .drop-zone:hover, .drop-zone.dragover { background: rgba(154,123,46,0.1); border-color: var(--sepia-light); }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; filter: sepia(1) brightness(0.7); }
+  .drop-main { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 0.3rem; }
+  .drop-sub  { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.8rem; color: var(--ink-light); }
+
+  .controls-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; align-items: end;
+  }
+  .control-group label {
+    display: block; font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--sepia); margin-bottom: 0.5rem;
+  }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾'; position: absolute; right: 0.75rem; top: 50%;
+    transform: translateY(-50%); color: var(--sepia); pointer-events: none; font-size: 0.8rem;
+  }
+  select {
+    width: 100%; appearance: none; -webkit-appearance: none;
+    background: rgba(232,223,200,0.8); border: 1px solid var(--border-gold);
+    color: var(--ink); font-family: 'IM Fell English', serif; font-size: 0.9rem;
+    padding: 0.55rem 2rem 0.55rem 0.75rem; cursor: pointer; outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  select:focus { border-color: var(--sepia-light); background: rgba(255,245,220,0.9); }
+
+  .quality-row { margin: 0 0 1.5rem; }
+  .quality-row label {
+    display: flex; justify-content: space-between; font-family: 'Cinzel', serif;
+    font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--sepia); margin-bottom: 0.5rem;
+  }
+  .quality-row label span { font-family: 'Playfair Display', serif; font-size: 0.85rem; letter-spacing: 0; font-weight: 700; color: var(--ink); }
+  input[type="range"] {
+    width: 100%; -webkit-appearance: none; height: 4px;
+    background: linear-gradient(90deg, var(--sepia) var(--pct, 92%), var(--paper-darker) var(--pct, 92%));
+    outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px;
+    background: var(--sepia-light); border: 2px solid var(--border-gold); border-radius: 0; cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px; background: var(--sepia-light);
+    border: 2px solid var(--border-gold); border-radius: 0; cursor: pointer;
+  }
+
+  .btn-transmute {
+    display: block; width: 100%; background: var(--ink); color: var(--paper);
+    font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.4em; text-transform: uppercase;
+    border: none; padding: 1rem 2rem; cursor: pointer;
+    transition: background 0.25s, letter-spacing 0.25s, box-shadow 0.25s;
+    box-shadow: 4px 4px 0 var(--border-gold); position: relative; overflow: hidden;
+  }
+  .btn-transmute::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,235,180,0.08) 50%, transparent 100%);
+    transform: translateX(-100%); transition: transform 0.5s;
+  }
+  .btn-transmute:hover:not(:disabled)::before { transform: translateX(100%); }
+  .btn-transmute:hover:not(:disabled) { background: var(--rust); letter-spacing: 0.5em; box-shadow: 6px 6px 0 var(--border-gold); }
+  .btn-transmute:active:not(:disabled) { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--border-gold); }
+  .btn-transmute:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .progress-block { display: none; margin: 1.5rem 0 0; }
+  .progress-block.visible { display: block; }
+
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.8rem;
+    color: var(--ink-fade); margin-bottom: 0.4rem;
+  }
+  .progress-bar-outer {
+    height: 12px; background: var(--paper-darker);
+    border: 1px solid var(--border-gold); position: relative; overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%; background: linear-gradient(90deg, var(--sepia), var(--sepia-light));
+    width: 0%; transition: width 0.3s ease; position: relative;
+  }
+  .progress-bar-inner::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0, transparent 10px, rgba(255,255,255,0.12) 10px, rgba(255,255,255,0.12) 20px);
+  }
+
+  .status-line {
+    font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.78rem;
+    color: var(--ink-light); margin-top: 0.6rem; min-height: 1.2em;
+  }
+  .status-line .tick { display: inline-block; animation: tick 0.8s infinite alternate; }
+  @keyframes tick { from { opacity: 1; } to { opacity: 0; } }
+
+  .timer-display { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.75rem; color: var(--sepia); }
+
+  .file-list { margin: 1.5rem 0 0; display: none; }
+  .file-list.visible { display: block; }
+
+  .file-entry {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(154,123,46,0.3); font-size: 0.82rem;
+  }
+  .file-entry:first-child { border-top: 1px solid rgba(154,123,46,0.3); }
+  .file-entry .fname { flex: 1; font-family: 'IM Fell English', serif; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-entry .fsize { font-family: 'Libre Baskerville', serif; font-size: 0.7rem; color: var(--ink-light); white-space: nowrap; }
+  .file-entry .fbadge {
+    font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 0.2em;
+    text-transform: uppercase; padding: 0.15rem 0.5rem; border: 1px solid;
+  }
+  .fbadge.pending { border-color: var(--ink-light); color: var(--ink-light); }
+  .fbadge.working { border-color: var(--sepia-light); color: var(--sepia-light); background: rgba(196,152,42,0.1); }
+  .fbadge.done    { border-color: #4a7a2e; color: #4a7a2e; background: rgba(74,122,46,0.08); }
+  .fbadge.error   { border-color: var(--rust); color: var(--rust); background: rgba(122,45,10,0.08); }
+  .file-entry .dl-link {
+    font-family: 'Cinzel', serif; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--sepia); text-decoration: none; border-bottom: 1px solid var(--border-gold);
+    white-space: nowrap; padding-bottom: 1px;
+  }
+  .file-entry .dl-link:hover { color: var(--rust); border-color: var(--rust); }
+
+  .btn-dl-all {
+    display: none; margin: 1rem 0 0; background: transparent; border: 1px solid var(--border-gold);
+    color: var(--ink); font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.35em;
+    text-transform: uppercase; padding: 0.6rem 1.5rem; cursor: pointer; transition: background 0.2s; width: 100%;
+  }
+  .btn-dl-all:hover { background: rgba(154,123,46,0.12); }
+  .btn-dl-all.visible { display: block; }
+
+  .colophon {
+    text-align: center; margin-top: 2rem; font-family: 'IM Fell English', serif;
+    font-style: italic; font-size: 0.72rem; color: var(--ink-light); line-height: 1.9;
+  }
+  .colophon strong {
+    font-family: 'Cinzel', serif; font-style: normal; font-size: 0.6rem;
+    letter-spacing: 0.25em; text-transform: uppercase; color: var(--sepia);
+  }
+  .floret { text-align: center; color: var(--sepia); font-size: 1.1rem; margin: 0.5rem 0; }
+
+  .formats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; font-size: 0.78rem; }
+  .formats-col h4 {
+    font-family: 'Cinzel', serif; font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--sepia); margin-bottom: 0.5rem; border-bottom: 1px solid rgba(154,123,46,0.3); padding-bottom: 0.3rem;
+  }
+  .formats-col ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .formats-col ul li {
+    font-family: 'Libre Baskerville', serif; font-size: 0.68rem; border: 1px solid rgba(154,123,46,0.5);
+    padding: 0.15rem 0.45rem; color: var(--ink-fade); background: rgba(154,123,46,0.05);
+  }
+  .fn-note {
+    font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.7rem;
+    color: var(--ink-light); margin-top: 0.5rem; line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    .page { padding: 2rem 1.5rem 2.5rem; }
+    .controls-row { grid-template-columns: 1fr; gap: 1rem; }
+    .formats-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">
+    <p class="pub-line">Professor Aldous Pemberton's Patented Scientific Instrument</p>
+    <h1 class="title">The Chromatic<br>Transmutation Apparatus</h1>
+    <p class="subtitle">For the Conversion of Pictorial Daguerreotypes &amp; Digital Impressions</p>
+    <div class="edition-badge">Established MDCCCLXXXVII · London · No Prior Experience Required</div>
+  </div>
+
+  <hr class="double-rule">
+
+  <div class="notice">
+    <p>Deposit your pictorial specimens into the receptacle below, select the desired output medium,
+    and engage the Transmutation Engine. All operations are conducted entirely within your computing
+    apparatus — no image data is transmitted to foreign shores.</p>
+  </div>
+
+  <p class="section-head">— Accepted &amp; Produced Formats —</p>
+  <div class="formats-grid">
+    <div class="formats-col">
+      <h4>Accepted Specimens (Input)</h4>
+      <ul><li>PNG</li><li>JPEG</li><li>GIF</li><li>BMP</li><li>TIFF</li><li>WebP</li><li>SVG</li><li>ICO</li></ul>
+    </div>
+    <div class="formats-col">
+      <h4>Produced Formats (Output)</h4>
+      <ul><li>WebP</li><li>PNG</li><li>JPEG</li><li>BMP</li><li>ICO</li></ul>
+    </div>
+  </div>
+  <p class="fn-note">† SVG, GIF, and TIFF are accepted as input. Browser limitations preclude their direct production as output. ICO output is produced as a 32×32 PNG encased in an ICO wrapper, suitable for use as a favicon or application icon.</p>
+
+  <hr class="double-rule">
+
+  <p class="section-head">— I. Deposit Your Specimens —</p>
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" multiple accept=".png,.jpg,.jpeg,.gif,.bmp,.tiff,.tif,.webp,.svg,.ico,image/*">
+    <span class="drop-icon">🜃</span>
+    <p class="drop-main">Drag &amp; Drop Images Hereupon</p>
+    <p class="drop-sub">— or tap to browse your photographic collection —</p>
+  </div>
+
+  <div class="file-list" id="fileList"></div>
+
+  <hr class="double-rule">
+  <p class="section-head">— II. Select Output Medium —</p>
+
+  <div class="controls-row">
+    <div class="control-group">
+      <label for="fmtSelect">Desired Output Format</label>
+      <div class="select-wrap">
+        <select id="fmtSelect">
+          <option value="webp">WebP — Modern Compressed</option>
+          <option value="png">PNG — Lossless Transparency</option>
+          <option value="jpeg">JPEG — Photographic</option>
+          <option value="bmp">BMP — Uncompressed Bitmap</option>
+          <option value="ico">ICO — Icon Format (32×32)</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-group">
+      <label for="scaleSelect">Output Scale</label>
+      <div class="select-wrap">
+        <select id="scaleSelect">
+          <option value="1">100% — Original Dimensions</option>
+          <option value="0.75">75% — Three-Quarter Reduction</option>
+          <option value="0.5">50% — Half Scale</option>
+          <option value="0.25">25% — Quarter Scale</option>
+          <option value="2">200% — Double Enlargement</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="quality-row" id="qualityRow">
+    <label for="qualRange">Quality of Impression <span id="qualVal">92%</span></label>
+    <input type="range" id="qualRange" min="10" max="100" value="92">
+  </div>
+
+  <button class="btn-transmute" id="transmuteBtn" disabled>
+    ✦ &nbsp; Engage the Transmutation Engine &nbsp; ✦
+  </button>
+
+  <div class="progress-block" id="progressBlock">
+    <div class="progress-label">
+      <span id="progressLabel">Preparing the apparatus…</span>
+      <span class="timer-display" id="timerDisplay">0.00s</span>
+    </div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progressBar"></div>
+    </div>
+    <div class="status-line" id="statusLine">Commencing transmutation<span class="tick">…</span></div>
+  </div>
+
+  <button class="btn-dl-all" id="dlAllBtn">⬇ &nbsp; Download All Transmuted Files</button>
+
+  <hr class="double-rule">
+
+  <div class="colophon">
+    <div class="floret">✦ ✦ ✦</div>
+    <strong>Works Entirely Within Your Browser · No Server Required</strong><br>
+    No image data is transmitted beyond your own computing apparatus.<br>
+    Suitable for deployment upon GitHub Pages without modification whatsoever.<br>
+    <em>Powered by the HTML5 Canvas Transmutation Engine · Patent Pending · MDCCCLXXXVII</em>
+    <div class="floret" style="margin-top:0.75rem">❧</div>
+  </div>
+
+</div>
+
+<script>
+let files = [], results = [], timerInterval = null, startTime = null;
+
+const dropZone     = document.getElementById('dropZone');
+const fileInput    = document.getElementById('fileInput');
+const fileList     = document.getElementById('fileList');
+const fmtSelect    = document.getElementById('fmtSelect');
+const scaleSelect  = document.getElementById('scaleSelect');
+const qualRange    = document.getElementById('qualRange');
+const qualVal      = document.getElementById('qualVal');
+const qualityRow   = document.getElementById('qualityRow');
+const transmuteBtn = document.getElementById('transmuteBtn');
+const progressBlock= document.getElementById('progressBlock');
+const progressBar  = document.getElementById('progressBar');
+const progressLabel= document.getElementById('progressLabel');
+const statusLine   = document.getElementById('statusLine');
+const timerDisplay = document.getElementById('timerDisplay');
+const dlAllBtn     = document.getElementById('dlAllBtn');
+
+qualRange.addEventListener('input', () => {
+  qualVal.textContent = qualRange.value + '%';
+  qualRange.style.setProperty('--pct', qualRange.value + '%');
+});
+qualRange.style.setProperty('--pct', '92%');
+
+fmtSelect.addEventListener('change', () => {
+  const lossless = ['png','bmp','ico'].includes(fmtSelect.value);
+  qualityRow.style.opacity = lossless ? '0.35' : '1';
+  qualityRow.style.pointerEvents = lossless ? 'none' : 'auto';
+});
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  addFiles(Array.from(e.dataTransfer.files));
+});
+fileInput.addEventListener('change', () => addFiles(Array.from(fileInput.files)));
+
+function addFiles(newFiles) {
+  const valid = newFiles.filter(f => f.type.startsWith('image/') || /\.(svg|ico|bmp|tiff?)$/i.test(f.name));
+  files = [...files, ...valid];
+  renderFileList();
+  transmuteBtn.disabled = files.length === 0;
+  dlAllBtn.classList.remove('visible');
+  results = [];
+}
+
+function renderFileList() {
+  if (!files.length) { fileList.classList.remove('visible'); return; }
+  fileList.classList.add('visible');
+  fileList.innerHTML = files.map((f, i) => `
+    <div class="file-entry" id="fe-${i}">
+      <span class="fname">${f.name}</span>
+      <span class="fsize">${fmtBytes(f.size)}</span>
+      <span class="fbadge pending" id="badge-${i}">Queued</span>
+      <span id="dl-${i}"></span>
+    </div>`).join('');
+}
+
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+}
+
+function startTimer() {
+  startTime = performance.now();
+  timerInterval = setInterval(() => {
+    timerDisplay.textContent = ((performance.now()-startTime)/1000).toFixed(2) + 's';
+  }, 50);
+}
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerDisplay.textContent = ((performance.now()-startTime)/1000).toFixed(2) + 's';
+}
+
+transmuteBtn.addEventListener('click', async () => {
+  if (!files.length) return;
+  transmuteBtn.disabled = true;
+  progressBlock.classList.add('visible');
+  dlAllBtn.classList.remove('visible');
+  results = [];
+  startTimer();
+
+  const fmt = fmtSelect.value;
+  const quality = parseInt(qualRange.value) / 100;
+  const scale = parseFloat(scaleSelect.value);
+
+  setProgress(0, 'Loading specimens into the apparatus…', 'Preparing…');
+
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const pct = Math.round((i / files.length) * 100);
+    setProgress(pct, `Transmuting ${i+1} of ${files.length}: "${f.name}"`, `Processing ${f.name}…`);
+    setBadge(i, 'working', 'Working');
+
+    try {
+      await sleep(100 + Math.random() * 180);
+      const blob = await convertFile(f, fmt, quality, scale);
+      const ext = fmt === 'jpeg' ? 'jpg' : fmt;
+      const outName = stripExt(f.name) + '.' + ext;
+      const url = URL.createObjectURL(blob);
+      results.push({ blob, name: outName, url });
+      setBadge(i, 'done', 'Done');
+      document.getElementById('dl-' + i).innerHTML =
+        `<a class="dl-link" href="${url}" download="${outName}">Download</a>`;
+      setProgress(
+        Math.round(((i+1)/files.length)*100),
+        `Transmuted ${i+1} of ${files.length}: "${outName}" (${fmtBytes(blob.size)})`,
+        `Specimen successfully transmuted · ${fmtBytes(blob.size)}`
+      );
+    } catch(err) {
+      setBadge(i, 'error', 'Error');
+      setProgress(pct, `Error: "${f.name}" — ${err.message}`, `⚠ Transmutation failed`);
+      results.push(null);
+    }
+    await sleep(60);
+  }
+
+  stopTimer();
+  const elapsed = ((performance.now()-startTime)/1000).toFixed(2);
+  const ok = results.filter(Boolean).length;
+  setProgress(100,
+    `Complete — ${ok} of ${files.length} specimens transmuted in ${elapsed}s`,
+    `✦ The Apparatus has concluded its operations ✦`);
+  transmuteBtn.disabled = false;
+  if (ok > 1) dlAllBtn.classList.add('visible');
+});
+
+function setProgress(pct, label, status) {
+  progressBar.style.width = pct + '%';
+  progressLabel.textContent = label;
+  statusLine.innerHTML = status + (pct < 100 ? ' <span class="tick">…</span>' : '');
+}
+function setBadge(i, cls, text) {
+  const b = document.getElementById('badge-'+i);
+  if (b) { b.className = 'fbadge '+cls; b.textContent = text; }
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const stripExt = n => n.replace(/\.[^/.]+$/, '');
+
+async function convertFile(file, fmt, quality, scale) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      try {
+        const w = Math.round(img.naturalWidth * scale);
+        const h = Math.round(img.naturalHeight * scale);
+
+        if (fmt === 'ico') {
+          const c = document.createElement('canvas');
+          c.width = 32; c.height = 32;
+          c.getContext('2d').drawImage(img, 0, 0, 32, 32);
+          c.toBlob(blob => blob ? resolve(wrapIco(blob)) : reject(new Error('toBlob failed')), 'image/png');
+          return;
+        }
+        if (fmt === 'bmp') {
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+          ctx.drawImage(img,0,0,w,h);
+          resolve(encodeBMP(ctx.getImageData(0,0,w,h), w, h));
+          return;
+        }
+
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        if (fmt === 'jpeg') { ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h); }
+        ctx.drawImage(img,0,0,w,h);
+        const mime = {webp:'image/webp',png:'image/png',jpeg:'image/jpeg'}[fmt] || 'image/png';
+        c.toBlob(b => b ? resolve(b) : reject(new Error('Conversion failed — format unsupported by browser')), mime, fmt==='png'?undefined:quality);
+      } catch(e) { reject(e); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image')); };
+    img.src = url;
+  });
+}
+
+function encodeBMP(imageData, w, h) {
+  const rowSize = Math.ceil(w*3/4)*4;
+  const buf = new ArrayBuffer(54 + rowSize*h);
+  const v = new DataView(buf);
+  const d = imageData.data;
+  v.setUint8(0,0x42); v.setUint8(1,0x4D);
+  v.setUint32(2, 54+rowSize*h, true);
+  v.setUint32(10, 54, true);
+  v.setUint32(14, 40, true);
+  v.setInt32(18, w, true); v.setInt32(22, -h, true);
+  v.setUint16(26,1,true); v.setUint16(28,24,true);
+  v.setUint32(34, rowSize*h, true);
+  v.setInt32(38,2835,true); v.setInt32(42,2835,true);
+  let off = 54;
+  for (let r=0; r<h; r++) {
+    for (let c=0; c<w; c++) {
+      const i=(r*w+c)*4;
+      v.setUint8(off++,d[i+2]); v.setUint8(off++,d[i+1]); v.setUint8(off++,d[i]);
+    }
+    for (let p=0; p<rowSize-w*3; p++) v.setUint8(off++,0);
+  }
+  return new Blob([buf], {type:'image/bmp'});
+}
+
+async function wrapIco(pngBlob) {
+  const png = new Uint8Array(await pngBlob.arrayBuffer());
+  const buf = new ArrayBuffer(22 + png.length);
+  const v = new DataView(buf);
+  v.setUint16(2,1,true); v.setUint16(4,1,true);
+  v.setUint8(6,32); v.setUint8(7,32);
+  v.setUint16(10,1,true); v.setUint16(12,32,true);
+  v.setUint32(14,png.length,true); v.setUint32(18,22,true);
+  new Uint8Array(buf,22).set(png);
+  return new Blob([buf],{type:'image/x-icon'});
+}
+
+dlAllBtn.addEventListener('click', async () => {
+  const valid = results.filter(Boolean);
+  dlAllBtn.disabled = true;
+  dlAllBtn.textContent = '⏳  Preparing downloads…';
+  for (let i=0; i<valid.length; i++) {
+    await sleep(200);
+    const a = document.createElement('a');
+    a.href = valid[i].url; a.download = valid[i].name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  dlAllBtn.textContent = `✓  ${valid.length} Files Downloaded`;
+  await sleep(2000);
+  dlAllBtn.textContent = '⬇  Download All Transmuted Files';
+  dlAllBtn.disabled = false;
+});
+</script>
+</body>
+</html>
