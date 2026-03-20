@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Prism Archive</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .3s,color .3s}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+:root{
+  --ah:35;--as:90%;--al:48%;
+  --accent:hsl(var(--ah),var(--as),var(--al));
+  --accent-bg:hsl(var(--ah),60%,97%);
+  --accent-border:hsl(var(--ah),50%,88%);
+  --bg:#f2f2f7;--surface:rgba(255,255,255,0.78);--surface-solid:#fff;
+  --border:rgba(0,0,0,0.08);--border2:rgba(255,255,255,0.85);
+  --text1:#1c1c1e;--text2:#3a3a3c;--text3:#8e8e93;--text4:#aeaeb2;
+  --radius:18px;--radius-xs:8px;
+  --shadow:0 2px 16px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 30px rgba(0,0,0,0.1),0 1px 6px rgba(0,0,0,0.05);
+  --header-bg:rgba(242,242,247,0.88);
+}
+[data-theme="dark"]{
+  --bg:#0a0a0c;--surface:rgba(28,28,30,0.88);--surface-solid:#1c1c1e;
+  --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.07);
+  --text1:#f2f2f7;--text2:#d1d1d6;--text3:#8e8e93;--text4:#48484a;
+  --header-bg:rgba(10,10,12,0.88);color-scheme:dark;
+}
+[data-theme="dark"] .tabs{background:rgba(255,255,255,0.06)}
+[data-theme="dark"] .tab-btn.active{background:#2c2c2e;color:var(--text1)}
+[data-theme="dark"] .form-select,[data-theme="dark"] .form-input{background:rgba(44,44,46,0.8);border-color:rgba(255,255,255,0.1);color:var(--text1)}
+[data-theme="dark"] .entry-row:hover{background:rgba(255,255,255,0.03)}
+[data-theme="dark"] .entry-row+.entry-row{border-color:rgba(255,255,255,0.05)}
+
+/* BOOT */
+#boot{position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;transition:opacity 0.55s ease}
+.boot-brand{display:flex;align-items:center;gap:16px;animation:boot-fadein 0.7s 0.2s ease both}
+.boot-wordmark{font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;color:#fff;line-height:1}
+.boot-bar-wrap{width:200px;animation:boot-fadein 0.7s 0.6s ease both}
+.boot-bar-track{height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden}
+.boot-bar-fill{height:100%;background:rgba(255,255,255,0.75);border-radius:1px;width:0%;animation:boot-progress 2s 0.7s cubic-bezier(0.4,0,0.55,1) forwards}
+@keyframes boot-fadein{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
+@keyframes boot-progress{0%{width:0%}20%{width:28%}55%{width:62%}85%{width:88%}100%{width:100%}}
+.boot-prism-ray{animation:ray-pulse 2s ease-in-out infinite}
+.boot-prism-ray:nth-child(1){animation-delay:0s}.boot-prism-ray:nth-child(2){animation-delay:.15s}
+.boot-prism-ray:nth-child(3){animation-delay:.3s}.boot-prism-ray:nth-child(4){animation-delay:.45s}
+.boot-prism-ray:nth-child(5){animation-delay:.6s}
+@keyframes ray-pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+#app{opacity:1}
+
+.header{position:sticky;top:0;z-index:100;height:52px;padding:0 max(20px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--header-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--border);transition:background .3s}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),50%,88%);flex-shrink:0}
+.header-name{font-weight:600;font-size:1rem;letter-spacing:-.015em;color:var(--text1)}
+.header-status{font-size:.75rem;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.header-right{display:flex;align-items:center;gap:6px}
+.header-icon-btn{width:32px;height:32px;border-radius:10px;border:none;background:rgba(0,0,0,0.05);color:var(--text2);display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
+.header-icon-btn:hover{background:rgba(0,0,0,0.1);color:var(--text1)}
+[data-theme="dark"] .header-icon-btn{background:rgba(255,255,255,0.07);color:var(--text3)}
+[data-theme="dark"] .header-icon-btn:hover{background:rgba(255,255,255,0.12);color:var(--text1)}
+.app-nav{display:flex;gap:4px;overflow-x:auto;padding:10px max(16px,env(safe-area-inset-left));background:var(--header-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);scrollbar-width:none;-ms-overflow-style:none;position:sticky;top:52px;z-index:99;transition:background .3s}
+.app-nav::-webkit-scrollbar{display:none}
+.nav-item{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:100px;font-size:.78rem;font-weight:500;color:var(--text3);text-decoration:none;white-space:nowrap;transition:background .2s,color .2s;flex-shrink:0;border:1px solid transparent}
+.nav-item:hover{background:rgba(0,0,0,0.06);color:var(--text1)}
+.nav-item.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px hsl(var(--ah),70%,72%)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+[data-theme="dark"] .nav-item:hover{background:rgba(255,255,255,0.08)}
+.main{max-width:820px;margin:0 auto;padding:28px 16px 100px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .25s,background .3s}
+
+#drop-zone{position:relative;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px 24px;text-align:center;cursor:pointer;transition:background .25s}
+#drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:5}
+#drop-zone.dragover{background:var(--accent-bg);box-shadow:inset 0 0 0 2px var(--accent)}
+.drop-icon-wrap{width:64px;height:64px;border-radius:18px;background:hsl(var(--ah),45%,92%);display:flex;align-items:center;justify-content:center;transition:transform .25s}
+[data-theme="dark"] .drop-icon-wrap{background:hsl(var(--ah),30%,20%)}
+#drop-zone:hover .drop-icon-wrap{transform:scale(1.06)}
+.drop-icon{width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.drop-title{font-size:1.05rem;font-weight:600;color:var(--text1)}
+.drop-sub{font-size:.82rem;color:var(--text3);line-height:1.55;max-width:300px}
+.drop-pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:2px}
+.pill{font-size:.63rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:100px;background:hsl(var(--ah),45%,92%);color:var(--accent)}
+[data-theme="dark"] .pill{background:hsl(var(--ah),30%,20%)}
+
+/* TABS */
+.tabs-wrap{padding:12px 16px;border-bottom:1px solid var(--border)}
+.tabs{display:flex;gap:4px;background:rgba(0,0,0,0.05);border-radius:11px;padding:3px}
+.tab-btn{flex:1;font-size:.8rem;font-weight:500;border:none;background:none;padding:7px 4px;border-radius:8px;color:var(--text3);transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap}
+.tab-btn.active{background:#fff;color:var(--text1);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
+.tab-panel{display:none;padding:16px}
+.tab-panel.active{display:block}
+.form-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:110px}
+.form-label{font-size:.72rem;font-weight:500;color:var(--text2)}
+.form-label span{color:var(--text3);font-weight:400}
+.form-select,.form-input{width:100%;padding:9px 12px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.12);background:rgba(255,255,255,0.8);font-size:.88rem;color:var(--text1);outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.form-select:focus,.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),60%,90%)}
+.form-select-wrap{position:relative}
+.form-select-wrap::after{content:'⌄';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+
+/* CREATE FILE LIST */
+.create-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.create-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-xs);background:rgba(255,255,255,0.7);border:1px solid var(--border)}
+[data-theme="dark"] .create-item{background:rgba(44,44,46,0.6)}
+.create-item-name{flex:1;font-size:.82rem;color:var(--text1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.create-item-size{font-size:.7rem;color:var(--text3);white-space:nowrap}
+.create-item-remove{background:none;border:none;color:var(--text4);cursor:pointer;font-size:.85rem;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+.create-item-remove:hover{color:#ff3b30;background:rgba(255,59,48,.1)}
+.add-files-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border-radius:var(--radius-xs);border:1.5px dashed var(--accent-border);background:var(--accent-bg);color:var(--accent);font-size:.82rem;font-weight:500;cursor:pointer;position:relative;transition:background .15s}
+.add-files-btn:hover{background:hsl(var(--ah),50%,94%)}
+.add-files-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+
+/* INSPECT / EXTRACT */
+.zip-info{display:flex;gap:16px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.zip-stat{font-size:.75rem;color:var(--text3)}
+.zip-stat strong{color:var(--text1);font-weight:600}
+.search-bar{padding:10px 16px;border-bottom:1px solid var(--border)}
+.search-input{width:100%;padding:8px 12px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.12);background:rgba(255,255,255,0.8);font-size:.85rem;color:var(--text1);outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),60%,90%)}
+[data-theme="dark"] .search-input{background:rgba(44,44,46,0.8);border-color:rgba(255,255,255,0.1);color:var(--text1)}
+.entry-row{display:flex;align-items:center;gap:10px;padding:10px 16px;transition:background .15s;cursor:default}
+.entry-row:hover{background:rgba(0,0,0,0.025)}
+.entry-row+.entry-row{border-top:1px solid rgba(0,0,0,0.05)}
+.entry-icon{font-size:1rem;flex-shrink:0;width:24px;text-align:center}
+.entry-info{flex:1;min-width:0}
+.entry-name{font-size:.83rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text1)}
+.entry-path{font-size:.68rem;color:var(--text3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.entry-size{font-size:.7rem;color:var(--text3);white-space:nowrap;flex-shrink:0}
+.entry-dl{padding:4px 10px;border-radius:100px;border:none;background:hsl(var(--ah),45%,92%);color:var(--accent);font-size:.68rem;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.entry-dl:hover{background:hsl(var(--ah),45%,85%)}
+[data-theme="dark"] .entry-dl{background:hsl(var(--ah),30%,18%)}
+.folder-row{background:rgba(0,0,0,0.02);cursor:default}
+[data-theme="dark"] .folder-row{background:rgba(255,255,255,0.02)}
+
+/* ACTION */
+.action-bar{display:flex;gap:8px;flex-wrap:wrap;padding:16px}
+.action-btn{padding:8px 18px;border-radius:100px;border:none;background:var(--accent);color:#fff;font-size:.82rem;font-weight:600;cursor:pointer;transition:filter .2s;white-space:nowrap}
+.action-btn:hover{filter:brightness(1.08)}
+.action-btn.secondary{background:rgba(0,0,0,0.07);color:var(--text1)}
+[data-theme="dark"] .action-btn.secondary{background:rgba(255,255,255,0.1);color:var(--text2)}
+
+/* PROGRESS */
+#progress-wrap{display:none;padding:14px 16px}
+.prog-bar-track{height:3px;background:rgba(0,0,0,0.06);border-radius:2px;overflow:hidden}
+[data-theme="dark"] .prog-bar-track{background:rgba(255,255,255,0.1)}
+.prog-bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s}
+.prog-label{font-size:.75rem;color:var(--text3);margin-top:6px}
+
+.output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:44px 20px;color:var(--text4);font-size:.82rem;text-align:center}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(28,28,30,0.92);backdrop-filter:blur(12px);color:#fff;font-size:.82rem;padding:10px 20px;border-radius:100px;pointer-events:none;transition:transform .3s cubic-bezier(0.34,1.56,0.64,1),opacity .3s;opacity:0;white-space:nowrap;z-index:999}
+[data-theme="dark"] #toast{background:rgba(200,200,210,0.92);color:#1c1c1e}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:3px}
+[data-theme="dark"] ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15)}
+@media(max-width:480px){html{font-size:15px}.main{padding:12px 8px 80px}.header-status{display:none}}
+@media(max-width:600px){.main{padding:16px 10px 80px}.header-status{display:none}}
+@media(min-width:900px){.main{padding:32px 24px 100px}}
+</style>
+</head>
+<body>
+<div id="boot">
+  <div class="boot-brand">
+    <div class="boot-logo">
+      <svg width="52" height="52" viewBox="0 0 58 58" fill="none">
+        <polygon points="29,3 55,53 3,53" stroke="rgba(255,255,255,0.85)" stroke-width="1.4" fill="rgba(255,255,255,0.04)"/>
+        <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1" class="boot-prism-ray"/>
+        <circle cx="29" cy="29" r="2.5" fill="rgba(255,255,255,0.6)"/>
+      </svg>
+    </div>
+    <div class="boot-wordmark">Prism</div>
+  </div>
+  <div class="boot-bar-wrap"><div class="boot-bar-track"><div class="boot-bar-fill"></div></div></div>
+</div>
+
+<div id="app">
+  <header class="header">
+    <div class="header-left">
+      <div class="header-dot"></div>
+      <span class="header-name">Prism</span>
+    </div>
+    <div class="header-status">Archive</div>
+    <div class="header-right">
+      <button class="header-icon-btn" id="dark-mode-btn" aria-label="Toggle dark mode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon-sun" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="app-nav">
+    <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Images</a>
+    <a href="prism-audio.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Audio</a>
+    <a href="prism-video.html" class="nav-item"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video</a>
+    <a href="prism-pdf.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>PDF</a>
+    <a href="prism-docs.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Documents</a>
+    <a href="prism-archive.html" class="nav-item active"><svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Archive</a>
+  </nav>
+
+  <main class="main">
+
+    <!-- MODE PICKER -->
+    <div class="card">
+      <div class="tabs-wrap">
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="inspect">Inspect ZIP</button>
+          <button class="tab-btn" data-tab="extract">Extract All</button>
+          <button class="tab-btn" data-tab="create">Create ZIP</button>
+        </div>
+      </div>
+
+      <!-- INSPECT -->
+      <div class="tab-panel active" id="tab-inspect">
+        <div id="inspect-drop" style="position:relative;border:2px dashed var(--accent-border);border-radius:var(--radius-xs);padding:28px;text-align:center;cursor:pointer;transition:background .2s;margin-bottom:0">
+          <input type="file" id="inspect-input" accept=".zip,application/zip,application/x-zip-compressed" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+          <div style="font-size:.9rem;font-weight:600;color:var(--text1);margin-bottom:4px">Drop a ZIP file to inspect</div>
+          <div style="font-size:.75rem;color:var(--text3)">Browse its contents, download individual files</div>
+        </div>
+      </div>
+
+      <!-- EXTRACT -->
+      <div class="tab-panel" id="tab-extract">
+        <div id="extract-drop" style="position:relative;border:2px dashed var(--accent-border);border-radius:var(--radius-xs);padding:28px;text-align:center;cursor:pointer;transition:background .2s">
+          <input type="file" id="extract-input" accept=".zip,application/zip,application/x-zip-compressed" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+          <div style="font-size:.9rem;font-weight:600;color:var(--text1);margin-bottom:4px">Drop a ZIP to extract</div>
+          <div style="font-size:.75rem;color:var(--text3)">Downloads each file individually or as a new ZIP</div>
+        </div>
+        <div id="extract-actions" style="display:none;padding:14px 0 0">
+          <div id="extract-info" style="font-size:.82rem;color:var(--text3);margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="action-btn" id="extract-all-btn">⬇ Extract All (ZIP)</button>
+            <button class="action-btn secondary" id="extract-seq-btn">⬇ One by One</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CREATE -->
+      <div class="tab-panel" id="tab-create">
+        <div class="create-list" id="create-list"></div>
+        <div class="add-files-btn">
+          <input type="file" id="create-input" multiple>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add files
+        </div>
+        <div style="margin-top:14px">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Archive name</label>
+              <input type="text" class="form-input" id="zip-name" placeholder="archive" value="archive">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Compression</label>
+              <div class="form-select-wrap">
+                <select class="form-select" id="zip-level">
+                  <option value="0">None (fastest)</option>
+                  <option value="1">Low</option>
+                  <option value="6" selected>Balanced</option>
+                  <option value="9">Max (smallest)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button class="action-btn" id="create-zip-btn" disabled>Create ZIP</button>
+        </div>
+      </div>
+
+      <div id="progress-wrap">
+        <div class="prog-bar-track"><div class="prog-bar-fill" id="prog-bar"></div></div>
+        <div class="prog-label" id="prog-label">Working…</div>
+      </div>
+    </div>
+
+    <!-- RESULTS CARD -->
+    <div class="card" id="results-card">
+      <div class="zip-info" id="zip-info" style="display:none"></div>
+      <div class="search-bar" id="search-bar" style="display:none">
+        <input class="search-input" id="search-input" placeholder="Search files…" type="search">
+      </div>
+      <div id="entries-list"></div>
+      <div id="results-empty" class="output-empty">
+        <svg width="34" height="34" viewBox="0 0 58 58" fill="none" style="opacity:.22">
+          <polygon points="29,3 55,53 3,53" stroke="currentColor" stroke-width="2" fill="none"/>
+          <line x1="29" y1="3" x2="9" y2="53" stroke="#ffd93d" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1.2"/>
+        </svg>
+        <span>ZIP contents will appear here</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+var _pageStart=Date.now();
+'use strict';
+(function(){
+  function go(){var b=document.getElementById('boot');if(!b)return;b.style.transition='opacity 0.5s';b.style.opacity='0';setTimeout(function(){b.style.display='none';b.style.visibility='hidden';},520);}
+  var delay=Math.max(0,2600-(Date.now()-_pageStart));
+  setTimeout(go,delay);
+  setTimeout(go,4000);
+}());
+
+let isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+function applyDark(d){isDark=d;document.documentElement.setAttribute('data-theme',d?'dark':'light');document.getElementById('theme-icon-moon').style.display=d?'none':'';document.getElementById('theme-icon-sun').style.display=d?'':'none';}
+applyDark(isDark);
+document.getElementById('dark-mode-btn').addEventListener('click',()=>applyDark(!isDark));
+
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtB=b=>b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(2)+'MB';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// TABS
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const tab=btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tab}`));
+  });
+});
+
+// Load fflate
+async function loadFflate(){
+  if(window.fflate)return;
+  await new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/fflate.min.js';
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+
+// ── INSPECT ──
+let allEntries=[];
+document.getElementById('inspect-input').addEventListener('change',function(){if(this.files[0])inspectZip(this.files[0]);this.value='';});
+setupDrop('inspect-drop','inspect-input',f=>inspectZip(f));
+
+async function inspectZip(file){
+  setProgress(10,'Reading ZIP…');
+  try{
+    await loadFflate();
+    const buf=new Uint8Array(await file.arrayBuffer());
+    setProgress(50,'Parsing entries…');
+    await new Promise((res,rej)=>{
+      fflate.unzip(buf,(err,unzipped)=>{
+        if(err){rej(err);return;}
+        allEntries=Object.entries(unzipped).map(([path,data])=>({path,data,size:data.length,isDir:path.endsWith('/')}));
+        res();
+      });
+    });
+    setProgress(100,'Done');
+    renderEntries(allEntries, file);
+    document.getElementById('results-empty').style.display='none';
+    document.getElementById('search-bar').style.display='block';
+    document.getElementById('zip-info').style.display='flex';
+    const totalSize=allEntries.reduce((s,e)=>s+e.size,0);
+    const files2=allEntries.filter(e=>!e.isDir);
+    document.getElementById('zip-info').innerHTML=`
+      <div class="zip-stat">ZIP file: <strong>${esc(file.name)}</strong></div>
+      <div class="zip-stat">Entries: <strong>${files2.length} files</strong></div>
+      <div class="zip-stat">Uncompressed: <strong>${fmtB(totalSize)}</strong></div>
+      <div class="zip-stat">ZIP size: <strong>${fmtB(file.size)}</strong></div>`;
+    document.getElementById('search-input').addEventListener('input',function(){
+      const q=this.value.toLowerCase();
+      const filtered=allEntries.filter(e=>e.path.toLowerCase().includes(q));
+      renderEntries(filtered,null);
+    });
+  }catch(e){
+    showToast('Failed to read ZIP: '+e.message);setProgress(0,'');
+  }
+}
+
+function renderEntries(entries,file){
+  const list=document.getElementById('entries-list');
+  if(!entries.length){list.innerHTML='<div style="padding:20px 16px;text-align:center;font-size:.82rem;color:var(--text3)">No matching files</div>';return;}
+  list.innerHTML=entries.map(e=>{
+    if(e.isDir)return`<div class="entry-row folder-row"><span class="entry-icon">📁</span><div class="entry-info"><div class="entry-name">${esc(e.path)}</div></div></div>`;
+    const icon=getFileIcon(e.path);
+    const name=e.path.split('/').pop();
+    const dir=e.path.includes('/')?e.path.substring(0,e.path.lastIndexOf('/')):'';
+    return`<div class="entry-row">
+      <span class="entry-icon">${icon}</span>
+      <div class="entry-info">
+        <div class="entry-name">${esc(name)}</div>
+        ${dir?`<div class="entry-path">${esc(dir)}/</div>`:''}
+      </div>
+      <span class="entry-size">${fmtB(e.size)}</span>
+      <button class="entry-dl" onclick="downloadEntry(${entries.indexOf(e)})">⬇</button>
+    </div>`;
+  }).join('');
+  // Store for download reference
+  window._currentEntries=entries;
+}
+
+window.downloadEntry=function(idx){
+  const e=window._currentEntries[idx];
+  if(!e||e.isDir)return;
+  const blob=new Blob([e.data]);
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=e.path.split('/').pop();
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('Downloaded '+a.download);
+};
+
+// ── EXTRACT ──
+let extractData=null;
+document.getElementById('extract-input').addEventListener('change',function(){if(this.files[0])loadExtract(this.files[0]);this.value='';});
+setupDrop('extract-drop','extract-input',f=>loadExtract(f));
+
+async function loadExtract(file){
+  setProgress(20,'Loading…');
+  try{
+    await loadFflate();
+    const buf=new Uint8Array(await file.arrayBuffer());
+    setProgress(60,'Parsing…');
+    await new Promise((res,rej)=>{
+      fflate.unzip(buf,(err,u)=>{if(err){rej(err);return;}extractData=u;res();});
+    });
+    setProgress(100,'Ready');
+    const count=Object.keys(extractData).filter(k=>!k.endsWith('/')).length;
+    const total=Object.values(extractData).reduce((s,d)=>s+d.length,0);
+    document.getElementById('extract-info').textContent=`${count} files · ${fmtB(total)} uncompressed`;
+    document.getElementById('extract-actions').style.display='block';
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+document.getElementById('extract-all-btn').addEventListener('click',async()=>{
+  if(!extractData)return;
+  setProgress(30,'Building ZIP…');
+  const zo={};
+  Object.entries(extractData).forEach(([k,v])=>{if(!k.endsWith('/'))zo[k]=v;});
+  fflate.zip(zo,{level:0},(err,data)=>{
+    if(err){showToast('Error');return;}
+    const blob=new Blob([data],{type:'application/zip'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='extracted.zip';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setProgress(100,'Done');
+    showToast('Downloaded!');
+    if(navigator.vibrate)navigator.vibrate([40,60,100]);
+  });
+});
+
+document.getElementById('extract-seq-btn').addEventListener('click',async()=>{
+  if(!extractData)return;
+  const files=Object.entries(extractData).filter(([k])=>!k.endsWith('/'));
+  for(const [path,data] of files){
+    const blob=new Blob([data]);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=path.split('/').pop();
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    await sleep(200);
+  }
+  showToast(`Downloaded ${files.length} files`);
+  if(navigator.vibrate)navigator.vibrate([40,60,100]);
+});
+
+// ── CREATE ──
+let createFiles=[];
+document.getElementById('create-input').addEventListener('change',function(){addCreateFiles(Array.from(this.files));this.value='';});
+
+function addCreateFiles(newFiles){
+  createFiles=[...createFiles,...newFiles];
+  renderCreateList();
+  document.getElementById('create-zip-btn').disabled=!createFiles.length;
+}
+
+function renderCreateList(){
+  const list=document.getElementById('create-list');
+  list.innerHTML=createFiles.map((f,i)=>`
+    <div class="create-item">
+      <span style="font-size:.9rem">${getFileIcon(f.name)}</span>
+      <span class="create-item-name">${esc(f.name)}</span>
+      <span class="create-item-size">${fmtB(f.size)}</span>
+      <button class="create-item-remove" onclick="removeCreate(${i})">✕</button>
+    </div>`).join('');
+}
+
+window.removeCreate=function(i){createFiles.splice(i,1);renderCreateList();document.getElementById('create-zip-btn').disabled=!createFiles.length;};
+
+document.getElementById('create-zip-btn').addEventListener('click',async()=>{
+  if(!createFiles.length)return;
+  const name=(document.getElementById('zip-name').value||'archive').replace(/\.zip$/i,'');
+  const level=parseInt(document.getElementById('zip-level').value);
+  setProgress(20,'Reading files…');
+  await loadFflate();
+  const zo={};
+  for(let i=0;i<createFiles.length;i++){
+    setProgress(20+Math.round(i/createFiles.length*60),`Adding ${createFiles[i].name}…`);
+    zo[createFiles[i].name]=new Uint8Array(await createFiles[i].arrayBuffer());
+    await sleep(10);
+  }
+  setProgress(85,'Compressing…');
+  fflate.zip(zo,{level},(err,data)=>{
+    if(err){showToast('Error: '+err.message);return;}
+    const blob=new Blob([data],{type:'application/zip'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=name+'.zip';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setProgress(100,'Done');
+    showToast(`${name}.zip · ${fmtB(blob.size)}`);
+    if(navigator.vibrate)navigator.vibrate([40,60,100]);
+  });
+});
+
+// ── HELPERS ──
+function setupDrop(zoneId,inputId,handler){
+  const zone=document.getElementById(zoneId);
+  if(!zone)return;
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.style.background='var(--accent-bg)'});
+  zone.addEventListener('dragleave',()=>{zone.style.background=''});
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.style.background='';const f=e.dataTransfer.files[0];if(f)handler(f);});
+}
+
+function getFileIcon(path){
+  const ext=(path.split('.').pop()||'').toLowerCase();
+  const map={png:'🖼',jpg:'🖼',jpeg:'🖼',gif:'🖼',webp:'🖼',svg:'🖼',mp3:'🎵',wav:'🎵',ogg:'🎵',m4a:'🎵',mp4:'🎬',mov:'🎬',avi:'🎬',mkv:'🎬',pdf:'📄',doc:'📝',docx:'📝',txt:'📃',md:'📃',json:'🗂',xml:'🗂',csv:'📊',zip:'🗜',html:'🌐',js:'📜',css:'🎨',py:'🐍',sh:'⚙'};
+  return map[ext]||'📄';
+}
+
+function setProgress(pct,label){
+  const pw=document.getElementById('progress-wrap');
+  const pb=document.getElementById('prog-bar');
+  const pl=document.getElementById('prog-label');
+  if(pct>0&&pct<100){pw.style.display='block';}else if(pct>=100){setTimeout(()=>{pw.style.display='none';},1200);}
+  pb.style.width=pct+'%';
+  if(pl&&label)pl.textContent=label;
+}
+
+let toastT=null;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800)}
+</script>
+</body>
+</html>
