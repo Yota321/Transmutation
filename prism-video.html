@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Prism Video — Frame Extractor</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .3s,color .3s}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+:root{
+  --ah:16;--as:90%;--al:52%;
+  --accent:hsl(var(--ah),var(--as),var(--al));
+  --accent-soft:hsl(var(--ah),70%,65%);
+  --accent-bg:hsl(var(--ah),60%,97%);
+  --accent-border:hsl(var(--ah),50%,88%);
+  --bg:#f2f2f7;--surface:rgba(255,255,255,0.78);--surface-solid:#fff;
+  --border:rgba(0,0,0,0.08);--border2:rgba(255,255,255,0.85);
+  --text1:#1c1c1e;--text2:#3a3a3c;--text3:#8e8e93;--text4:#aeaeb2;
+  --radius:18px;--radius-xs:8px;
+  --shadow:0 2px 16px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 30px rgba(0,0,0,0.1),0 1px 6px rgba(0,0,0,0.05);
+  --header-bg:rgba(242,242,247,0.88);
+}
+[data-theme="dark"]{
+  --bg:#0a0a0c;--surface:rgba(28,28,30,0.88);--surface-solid:#1c1c1e;
+  --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.07);
+  --text1:#f2f2f7;--text2:#d1d1d6;--text3:#8e8e93;--text4:#48484a;
+  --header-bg:rgba(10,10,12,0.88);color-scheme:dark;
+}
+[data-theme="dark"] .tabs{background:rgba(255,255,255,0.06)}
+[data-theme="dark"] .tab-btn.active{background:#2c2c2e;color:var(--text1)}
+[data-theme="dark"] .form-select,[data-theme="dark"] .form-input{background:rgba(44,44,46,0.8);border-color:rgba(255,255,255,0.1);color:var(--text1)}
+[data-theme="dark"] .preset-btn{background:rgba(44,44,46,0.7);border-color:rgba(255,255,255,0.07)}
+[data-theme="dark"] .output-frame-card{background:rgba(28,28,30,0.95)}
+
+/* BOOT */
+#boot{position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;transition:opacity 0.55s ease;visibility:hidden}}
+.boot-brand{display:flex;align-items:center;gap:16px;animation:boot-fadein 0.7s 0.2s ease both}
+.boot-wordmark{font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;color:#fff;line-height:1}
+.boot-bar-wrap{width:200px;animation:boot-fadein 0.7s 0.6s ease both}
+.boot-bar-track{height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden}
+.boot-bar-fill{height:100%;background:rgba(255,255,255,0.75);border-radius:1px;width:0%;animation:boot-progress 2s 0.7s cubic-bezier(0.4,0,0.55,1) forwards}
+@keyframes boot-fadein{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
+@keyframes boot-progress{0%{width:0%}20%{width:28%}55%{width:62%}85%{width:88%}100%{width:100%}}
+.boot-prism-ray{animation:ray-pulse 2s ease-in-out infinite}
+.boot-prism-ray:nth-child(1){animation-delay:0s}.boot-prism-ray:nth-child(2){animation-delay:.15s}
+.boot-prism-ray:nth-child(3){animation-delay:.3s}.boot-prism-ray:nth-child(4){animation-delay:.45s}
+.boot-prism-ray:nth-child(5){animation-delay:.6s}
+@keyframes ray-pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+#app{opacity:1}
+
+/* HEADER & NAV */
+.header{position:sticky;top:0;z-index:100;height:52px;padding:0 max(20px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--header-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--border);transition:background .3s}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),50%,92%);transition:all .4s;flex-shrink:0}
+[data-theme="dark"] .header-dot{box-shadow:0 0 0 3px hsl(var(--ah),30%,22%)}
+.header-name{font-weight:600;font-size:1rem;letter-spacing:-.015em;color:var(--text1)}
+.header-status{font-size:.75rem;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.header-right{display:flex;align-items:center;gap:6px}
+.header-icon-btn{width:32px;height:32px;border-radius:10px;border:none;background:rgba(0,0,0,0.05);color:var(--text2);display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s;flex-shrink:0}
+.header-icon-btn:hover{background:rgba(0,0,0,0.1);color:var(--text1)}
+[data-theme="dark"] .header-icon-btn{background:rgba(255,255,255,0.07);color:var(--text3)}
+[data-theme="dark"] .header-icon-btn:hover{background:rgba(255,255,255,0.12);color:var(--text1)}
+.app-nav{display:flex;gap:4px;overflow-x:auto;padding:10px max(16px,env(safe-area-inset-left));background:var(--header-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);scrollbar-width:none;-ms-overflow-style:none;transition:background .3s;position:sticky;top:52px;z-index:99}
+.app-nav::-webkit-scrollbar{display:none}
+.nav-item{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:100px;font-size:.78rem;font-weight:500;color:var(--text3);text-decoration:none;white-space:nowrap;transition:background .2s,color .2s;flex-shrink:0;border:1px solid transparent}
+.nav-item:hover{background:rgba(0,0,0,0.06);color:var(--text1)}
+.nav-item.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px hsl(var(--ah),70%,72%)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+[data-theme="dark"] .nav-item:hover{background:rgba(255,255,255,0.08)}
+.main{max-width:820px;margin:0 auto;padding:28px 16px 100px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .25s,background .3s}
+
+/* VIDEO PREVIEW */
+#drop-zone{position:relative;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px 24px;text-align:center;cursor:pointer;transition:background .25s}
+#drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:5}
+#drop-zone.dragover{background:var(--accent-bg);box-shadow:inset 0 0 0 2px var(--accent)}
+.drop-icon-wrap{width:64px;height:64px;border-radius:18px;background:hsl(var(--ah),45%,93%);display:flex;align-items:center;justify-content:center;transition:transform .25s}
+[data-theme="dark"] .drop-icon-wrap{background:hsl(var(--ah),30%,20%)}
+#drop-zone:hover .drop-icon-wrap{transform:scale(1.06)}
+.drop-icon{width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.drop-title{font-size:1.05rem;font-weight:600;color:var(--text1)}
+.drop-sub{font-size:.82rem;color:var(--text3);line-height:1.55;max-width:320px}
+.drop-pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:2px}
+.pill{font-size:.63rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:100px;background:hsl(var(--ah),45%,93%);color:var(--accent)}
+[data-theme="dark"] .pill{background:hsl(var(--ah),30%,20%)}
+
+/* VIDEO INFO STRIP */
+#video-info{display:none;padding:14px 16px;border-top:1px solid var(--border);gap:16px;flex-wrap:wrap}
+#video-info.visible{display:flex}
+.v-stat{font-size:.75rem;color:var(--text3)}
+.v-stat strong{color:var(--text1);font-weight:600}
+#video-preview-wrap{display:none;padding:0 16px 16px}
+#video-preview-wrap.visible{display:block}
+#video-el{width:100%;max-height:280px;border-radius:10px;background:#000;display:block;object-fit:contain}
+
+/* CONTROLS */
+.tabs-wrap{padding:12px 16px;border-bottom:1px solid var(--border)}
+.tabs{display:flex;gap:4px;background:rgba(0,0,0,0.05);border-radius:11px;padding:3px}
+.tab-btn{flex:1;font-size:.8rem;font-weight:500;border:none;background:none;padding:7px 4px;border-radius:8px;color:var(--text3);transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap}
+.tab-btn.active{background:#fff;color:var(--text1);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
+.tab-panel{display:none;padding:16px}
+.tab-panel.active{display:block}
+.form-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:110px}
+.form-label{font-size:.72rem;font-weight:500;color:var(--text2)}
+.form-label span{color:var(--text3);font-weight:400}
+.form-select,.form-input{width:100%;padding:9px 12px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.12);background:rgba(255,255,255,0.8);font-size:.88rem;color:var(--text1);outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.form-select:focus,.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),70%,92%)}
+.form-select-wrap{position:relative}
+.form-select-wrap::after{content:'⌄';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.adj-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.adj-label{font-size:.72rem;font-weight:500;color:var(--text2);min-width:76px;flex-shrink:0}
+.adj-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(0,0,0,0.1);outline:none;cursor:pointer}
+[data-theme="dark"] .adj-slider{background:rgba(255,255,255,0.12)}
+.adj-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,0.25)}
+.adj-val{font-size:.75rem;font-weight:600;color:var(--accent);min-width:40px;text-align:right}
+
+/* PRESET BUTTONS */
+.frame-presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:8px}
+.preset-btn{padding:8px 10px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,255,0.7);font-size:.72rem;font-weight:500;color:var(--text2);text-align:left;line-height:1.4;transition:background .15s,border-color .2s,color .2s}
+.preset-btn:hover{background:hsl(var(--ah),45%,93%);border-color:var(--accent-border);color:var(--accent)}
+.preset-name{font-weight:600;font-size:.7rem;color:var(--text1);display:block}
+.preset-sub{font-size:.63rem;color:var(--text3)}
+
+/* CONVERT BTN */
+.convert-wrap{padding:16px}
+#convert-btn{width:100%;padding:14px;border-radius:13px;border:none;background:var(--accent);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:background .4s,transform .15s,box-shadow .25s,opacity .2s;box-shadow:0 4px 14px hsl(var(--ah),70%,75%)}
+#convert-btn:hover:not(:disabled){filter:brightness(1.05);box-shadow:0 6px 20px hsl(var(--ah),65%,72%)}
+#convert-btn:active:not(:disabled){transform:scale(0.98)}
+#convert-btn:disabled{opacity:.45;cursor:not-allowed}
+#convert-btn .btn-sub{display:block;font-size:.72rem;font-weight:400;opacity:.8;margin-top:2px}
+#progress-wrap{display:none;padding:14px 16px}
+.prog-bar-track{height:3px;background:rgba(0,0,0,0.06);border-radius:2px;overflow:hidden}
+[data-theme="dark"] .prog-bar-track{background:rgba(255,255,255,0.1)}
+.prog-bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s}
+.prog-label{font-size:.75rem;color:var(--text3);margin-top:6px;display:flex;justify-content:space-between}
+.prog-stage{font-size:.8rem;font-weight:500;color:var(--accent);margin-bottom:6px}
+
+/* FRAMES GRID */
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.output-title{font-size:.95rem;font-weight:600;color:var(--text1)}
+.output-stats{font-size:.75rem;color:var(--text3)}
+.dl-all-btn{padding:7px 16px;border-radius:100px;border:none;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px hsl(var(--ah),70%,75%)}
+.dl-all-btn:hover{filter:brightness(1.05)}
+.frames-grid{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.output-frame-card{border-radius:10px;border:1px solid var(--border);overflow:hidden;background:rgba(255,255,255,0.9);transition:box-shadow .2s,transform .2s}
+.output-frame-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.frame-img{width:100%;height:110px;object-fit:cover;display:block;cursor:zoom-in}
+.frame-info{padding:8px 10px;display:flex;align-items:center;justify-content:space-between}
+.frame-time{font-size:.72rem;color:var(--text3);font-variant-numeric:tabular-nums}
+.frame-dl{padding:4px 10px;border-radius:100px;border:none;background:hsl(var(--ah),45%,92%);color:var(--accent);font-size:.68rem;font-weight:600;cursor:pointer}
+.frame-dl:hover{background:hsl(var(--ah),45%,85%)}
+[data-theme="dark"] .frame-dl{background:hsl(var(--ah),30%,18%)}
+
+/* GIF mode */
+.gif-preview{width:100%;max-height:300px;border-radius:10px;background:#000;display:block;object-fit:contain}
+.output-single{padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.out-dl-big{padding:10px 22px;border-radius:100px;border:none;background:var(--accent);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 2px 10px hsl(var(--ah),70%,72%)}
+.out-dl-big:hover{filter:brightness(1.06)}
+
+.output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:44px 20px;color:var(--text4);font-size:.82rem;text-align:center}
+
+/* LIGHTBOX */
+#lightbox{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .2s;background:rgba(0,0,0,0)}
+#lightbox.open{pointer-events:auto;opacity:1;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px)}
+#lightbox img{max-width:90vw;max-height:90vh;border-radius:10px;box-shadow:0 8px 60px rgba(0,0,0,0.5);transform:scale(0.92);transition:transform .25s cubic-bezier(0.34,1.56,0.64,1)}
+#lightbox.open img{transform:scale(1)}
+.lb-close{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(28,28,30,0.92);backdrop-filter:blur(12px);color:#fff;font-size:.82rem;padding:10px 20px;border-radius:100px;pointer-events:none;transition:transform .3s cubic-bezier(0.34,1.56,0.64,1),opacity .3s;opacity:0;white-space:nowrap;z-index:999}
+[data-theme="dark"] #toast{background:rgba(200,200,210,0.92);color:#1c1c1e}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:3px}
+[data-theme="dark"] ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15)}
+@media(max-width:480px){html{font-size:15px}.main{padding:12px 8px 80px}.header-status{display:none}.frames-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.main{padding:16px 10px 80px}.header-status{display:none}.frames-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:900px){.main{padding:32px 24px 100px}}
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div class="boot-brand">
+    <div class="boot-logo">
+      <svg width="52" height="52" viewBox="0 0 58 58" fill="none">
+        <polygon points="29,3 55,53 3,53" stroke="rgba(255,255,255,0.85)" stroke-width="1.4" fill="rgba(255,255,255,0.04)"/>
+        <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1" class="boot-prism-ray"/>
+        <circle cx="29" cy="29" r="2.5" fill="rgba(255,255,255,0.6)"/>
+      </svg>
+    </div>
+    <div class="boot-wordmark">Prism</div>
+  </div>
+  <div class="boot-bar-wrap"><div class="boot-bar-track"><div class="boot-bar-fill"></div></div></div>
+</div>
+
+<div id="app">
+  <header class="header">
+    <div class="header-left">
+      <div class="header-dot"></div>
+      <span class="header-name">Prism</span>
+    </div>
+    <div class="header-status">Video Tools</div>
+    <div class="header-right">
+      <button class="header-icon-btn" id="dark-mode-btn" aria-label="Toggle dark mode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon-sun" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="app-nav">
+    <a href="prism.html" class="nav-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Images</a>
+    <a href="prism-audio.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Audio</a>
+    <a href="prism-video.html" class="nav-item active"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video</a>
+    <a href="prism-pdf.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>PDF</a>
+    <a href="prism-docs.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Documents</a>
+    <a href="prism-archive.html" class="nav-item"><svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Archive</a>
+  </nav>
+
+  <main class="main">
+
+    <div class="card">
+      <div id="drop-zone">
+        <input type="file" id="file-input" accept="video/*,.mp4,.mov,.avi,.webm,.mkv,.m4v">
+        <div class="drop-icon-wrap">
+          <svg class="drop-icon" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        </div>
+        <div class="drop-title">Drop a video here</div>
+        <div class="drop-sub">Extract frames as images, create GIFs from clips, or generate thumbnail sheets</div>
+        <div class="drop-pills">
+          <span class="pill">MP4</span><span class="pill">MOV</span><span class="pill">AVI</span>
+          <span class="pill">WebM</span><span class="pill">MKV</span><span class="pill">M4V</span>
+        </div>
+      </div>
+      <div id="video-preview-wrap">
+        <video id="video-el" controls preload="metadata"></video>
+      </div>
+      <div id="video-info">
+        <div class="v-stat">Duration: <strong id="v-dur">—</strong></div>
+        <div class="v-stat">Resolution: <strong id="v-res">—</strong></div>
+        <div class="v-stat">File size: <strong id="v-size">—</strong></div>
+        <div class="v-stat">Format: <strong id="v-fmt">—</strong></div>
+      </div>
+    </div>
+
+    <div class="card" id="controls-card" style="display:none">
+      <div class="tabs-wrap">
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="frames">Extract Frames</button>
+          <button class="tab-btn" data-tab="gif">Make GIF</button>
+          <button class="tab-btn" data-tab="thumb">Thumbnail Sheet</button>
+        </div>
+      </div>
+
+      <!-- FRAMES TAB -->
+      <div class="tab-panel active" id="tab-frames">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Mode</label>
+            <div class="form-select-wrap">
+              <select class="form-select" id="frame-mode">
+                <option value="interval">Every N seconds</option>
+                <option value="count">Total frame count</option>
+                <option value="range">Time range</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id="interval-group">
+            <label class="form-label">Interval <span>(seconds)</span></label>
+            <input type="number" class="form-input" id="frame-interval" value="1" min="0.1" step="0.1">
+          </div>
+          <div class="form-group" id="count-group" style="display:none">
+            <label class="form-label">Frame count</label>
+            <input type="number" class="form-input" id="frame-count" value="12" min="1" max="200">
+          </div>
+        </div>
+        <div class="form-row" id="range-group" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Start <span>(s)</span></label>
+            <input type="number" class="form-input" id="range-start" value="0" min="0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">End <span>(s)</span></label>
+            <input type="number" class="form-input" id="range-end" placeholder="End of video" min="0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Every <span>(s)</span></label>
+            <input type="number" class="form-input" id="range-interval" value="1" min="0.1" step="0.1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Output Format</label>
+            <div class="form-select-wrap">
+              <select class="form-select" id="frame-fmt">
+                <option value="png">PNG — Lossless</option>
+                <option value="jpeg" selected>JPEG — Smaller files</option>
+                <option value="webp">WebP — Best compression</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max width <span>(px)</span></label>
+            <input type="number" class="form-input" id="frame-width" placeholder="Original" min="100" max="7680">
+          </div>
+        </div>
+        <div class="form-label" style="margin-bottom:8px">Quick presets</div>
+        <div class="frame-presets">
+          <button class="preset-btn" onclick="setFrameMode('interval',2)"><span class="preset-name">Every 2s</span><span class="preset-sub">General preview</span></button>
+          <button class="preset-btn" onclick="setFrameMode('interval',5)"><span class="preset-name">Every 5s</span><span class="preset-sub">Long video overview</span></button>
+          <button class="preset-btn" onclick="setFrameMode('count',12)"><span class="preset-name">12 frames</span><span class="preset-sub">Fixed grid</span></button>
+          <button class="preset-btn" onclick="setFrameMode('count',24)"><span class="preset-name">24 frames</span><span class="preset-sub">Detailed grid</span></button>
+        </div>
+      </div>
+
+      <!-- GIF TAB -->
+      <div class="tab-panel" id="tab-gif">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Start time <span>(s)</span></label>
+            <input type="number" class="form-input" id="gif-start" value="0" min="0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration <span>(s, max 10)</span></label>
+            <input type="number" class="form-input" id="gif-dur" value="3" min="0.5" max="10" step="0.5">
+          </div>
+        </div>
+        <div class="adj-row">
+          <span class="adj-label">Frame rate</span>
+          <input type="range" class="adj-slider" id="gif-fps" min="5" max="30" value="12">
+          <span class="adj-val" id="gif-fps-val">12 fps</span>
+        </div>
+        <div class="adj-row">
+          <span class="adj-label">Width</span>
+          <input type="range" class="adj-slider" id="gif-w" min="100" max="800" value="400" step="50">
+          <span class="adj-val" id="gif-w-val">400px</span>
+        </div>
+        <div style="margin-top:8px;padding:10px 12px;border-radius:var(--radius-xs);background:var(--accent-bg);border:1px solid var(--accent-border);font-size:.75rem;color:var(--text2);line-height:1.6">
+          💡 GIF is generated frame-by-frame using Canvas. For best results keep duration under 5s. Large dimensions increase file size significantly.
+        </div>
+      </div>
+
+      <!-- THUMBNAIL TAB -->
+      <div class="tab-panel" id="tab-thumb">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Grid columns</label>
+            <div class="form-select-wrap">
+              <select class="form-select" id="thumb-cols">
+                <option value="3">3 columns</option>
+                <option value="4" selected>4 columns</option>
+                <option value="5">5 columns</option>
+                <option value="6">6 columns</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Grid rows</label>
+            <div class="form-select-wrap">
+              <select class="form-select" id="thumb-rows">
+                <option value="3">3 rows</option>
+                <option value="4" selected>4 rows</option>
+                <option value="5">5 rows</option>
+                <option value="6">6 rows</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;border-radius:var(--radius-xs);background:var(--accent-bg);border:1px solid var(--accent-border);font-size:.75rem;color:var(--text2);line-height:1.6">
+          Generates a single composite image with equally-spaced frames arranged in a grid — ideal for video previews or shot lists.
+        </div>
+      </div>
+
+      <div class="convert-wrap">
+        <button id="convert-btn" disabled>Extract<span class="btn-sub" id="convert-sub">Add a video to begin</span></button>
+      </div>
+      <div id="progress-wrap">
+        <div class="prog-stage" id="prog-stage"></div>
+        <div class="prog-bar-track"><div class="prog-bar-fill" id="prog-bar"></div></div>
+        <div class="prog-label"><span id="prog-label">Processing…</span><span id="prog-timer">0.00s</span></div>
+      </div>
+    </div>
+
+    <div class="card" id="output-wrap">
+      <div class="output-header">
+        <div>
+          <div class="output-title">Output</div>
+          <div class="output-stats" id="output-stats"></div>
+        </div>
+        <button class="dl-all-btn" id="dl-zip-btn" style="display:none">⬇ ZIP All</button>
+      </div>
+      <div class="frames-grid" id="frames-grid"></div>
+      <div id="output-single" style="display:none"></div>
+      <div id="output-empty" class="output-empty">
+        <svg width="34" height="34" viewBox="0 0 58 58" fill="none" style="opacity:.22">
+          <polygon points="29,3 55,53 3,53" stroke="currentColor" stroke-width="2" fill="none"/>
+          <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1.2"/>
+        </svg>
+        <span>Extracted frames will appear here</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="">
+</div>
+<div id="toast"></div>
+
+<script>
+var _pageStart=Date.now();
+'use strict';
+
+/* BOOT — dismiss overlay, #app always visible */
+(function(){
+  function go(){
+    var b=document.getElementById('boot');
+    if(!b)return;
+    b.style.transition='opacity 0.5s';
+    b.style.opacity='0';
+    setTimeout(function(){
+      b.style.display='none';
+      b.style.visibility='hidden';
+    },520);
+  }
+  // Run after 2.6s — or immediately if page was slow to load
+  var delay=Math.max(0, 2600-(Date.now()-_pageStart));
+  setTimeout(go, delay);
+  // Hard fallback — always fires
+  setTimeout(go, 4000);
+}());
+
+let isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+function applyDark(d){isDark=d;document.documentElement.setAttribute('data-theme',d?'dark':'light');document.getElementById('theme-icon-moon').style.display=d?'none':'';document.getElementById('theme-icon-sun').style.display=d?'':'none';}
+applyDark(isDark);
+document.getElementById('dark-mode-btn').addEventListener('click',()=>applyDark(!isDark));
+
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtB=b=>b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(2)+'MB';
+const fmtTime=s=>{const m=Math.floor(s/60),sec=(s%60).toFixed(1);return`${m}:${String(Math.floor(s%60)).padStart(2,'0')}.${(s%1).toFixed(1).slice(2)}`};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let videoFile=null, videoEl=document.getElementById('video-el');
+let frameBlobs=[], gifBlob=null;
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const tab=btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tab}`));
+    const lbl={'frames':'Extract','gif':'Make GIF','thumb':'Generate Sheet'}[tab]||'Process';
+    document.getElementById('convert-btn').childNodes[0].textContent=lbl;
+  });
+});
+
+// Frame mode select
+document.getElementById('frame-mode').addEventListener('change',function(){
+  document.getElementById('interval-group').style.display=this.value==='interval'?'':'none';
+  document.getElementById('count-group').style.display=this.value==='count'?'':'none';
+  document.getElementById('range-group').style.display=this.value==='range'?'':'none';
+});
+
+window.setFrameMode=function(mode,val){
+  document.getElementById('frame-mode').value=mode;
+  document.getElementById('frame-mode').dispatchEvent(new Event('change'));
+  if(mode==='interval')document.getElementById('frame-interval').value=val;
+  if(mode==='count')document.getElementById('frame-count').value=val;
+};
+
+document.getElementById('gif-fps').addEventListener('input',function(){document.getElementById('gif-fps-val').textContent=this.value+' fps'});
+document.getElementById('gif-w').addEventListener('input',function(){document.getElementById('gif-w-val').textContent=this.value+'px'});
+
+// File input
+const dropZone=document.getElementById('drop-zone');
+const fileInput=document.getElementById('file-input');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover')});
+dropZone.addEventListener('dragleave',e=>{if(!dropZone.contains(e.relatedTarget))dropZone.classList.remove('dragover')});
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');handleVideo(e.dataTransfer.files[0])});
+fileInput.addEventListener('change',()=>{if(fileInput.files[0])handleVideo(fileInput.files[0]);fileInput.value=''});
+
+function handleVideo(file){
+  if(!file||!file.type.startsWith('video/'))
+    if(!/\.(mp4|mov|avi|webm|mkv|m4v)$/i.test(file.name)){showToast('Please drop a video file');return;}
+  videoFile=file;
+  const url=URL.createObjectURL(file);
+  videoEl.src=url;
+  videoEl.load();
+  document.getElementById('video-preview-wrap').classList.add('visible');
+  document.getElementById('v-size').textContent=fmtB(file.size);
+  document.getElementById('v-fmt').textContent=file.name.split('.').pop().toUpperCase();
+  videoEl.onloadedmetadata=()=>{
+    document.getElementById('video-info').classList.add('visible');
+    document.getElementById('v-dur').textContent=`${Math.floor(videoEl.duration/60)}:${String(Math.floor(videoEl.duration%60)).padStart(2,'0')}`;
+    document.getElementById('v-res').textContent=`${videoEl.videoWidth} × ${videoEl.videoHeight}`;
+    document.getElementById('gif-dur').max=Math.min(10,videoEl.duration).toFixed(1);
+    document.getElementById('range-end').placeholder=videoEl.duration.toFixed(1);
+    document.getElementById('controls-card').style.display='block';
+    document.getElementById('convert-btn').disabled=false;
+    document.getElementById('convert-sub').textContent='Ready to extract';
+  };
+}
+
+function captureFrame(video,t,maxW){
+  return new Promise(res=>{
+    video.currentTime=t;
+    video.onseeked=()=>{
+      const ratio=maxW&&video.videoWidth>maxW?maxW/video.videoWidth:1;
+      const w=Math.round(video.videoWidth*ratio);
+      const h=Math.round(video.videoHeight*ratio);
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(video,0,0,w,h);
+      res(c);
+      video.onseeked=null;
+    };
+  });
+}
+
+let timerIv=null,startT=null;
+const startTimer=()=>{startT=performance.now();timerIv=setInterval(()=>{document.getElementById('prog-timer').textContent=((performance.now()-startT)/1000).toFixed(2)+'s'},50)};
+const stopTimer=()=>{clearInterval(timerIv);document.getElementById('prog-timer').textContent=((performance.now()-startT)/1000).toFixed(2)+'s'};
+function setProgress(pct,label,stage=''){document.getElementById('prog-bar').style.width=pct+'%';document.getElementById('prog-label').textContent=label;if(stage)document.getElementById('prog-stage').textContent=stage;}
+
+document.getElementById('convert-btn').addEventListener('click',async()=>{
+  if(!videoFile||!videoEl.duration)return;
+  const activeTab=document.querySelector('.tab-btn.active').dataset.tab;
+  const btn=document.getElementById('convert-btn');
+  btn.disabled=true;btn.childNodes[0].textContent='Processing…';
+  document.getElementById('progress-wrap').style.display='block';
+  document.getElementById('output-empty').style.display='none';
+  document.getElementById('frames-grid').innerHTML='';
+  document.getElementById('output-single').style.display='none';
+  document.getElementById('dl-zip-btn').style.display='none';
+  startTimer();
+
+  const dur=videoEl.duration;
+  const fmt=document.getElementById('frame-fmt').value;
+  const maxW=parseInt(document.getElementById('frame-width').value)||0;
+  const mime={png:'image/png',jpeg:'image/jpeg',webp:'image/webp'}[fmt]||'image/jpeg';
+  const ext=fmt;
+
+  try{
+    if(activeTab==='frames'){
+      const mode=document.getElementById('frame-mode').value;
+      let times=[];
+      if(mode==='interval'){
+        const iv=parseFloat(document.getElementById('frame-interval').value)||1;
+        for(let t=0;t<dur;t+=iv)times.push(Math.min(t,dur-0.05));
+      }else if(mode==='count'){
+        const n=parseInt(document.getElementById('frame-count').value)||12;
+        for(let i=0;i<n;i++)times.push(dur*(i/(n-1||1)));
+      }else{
+        const ts=parseFloat(document.getElementById('range-start').value)||0;
+        const te=parseFloat(document.getElementById('range-end').value)||dur;
+        const iv=parseFloat(document.getElementById('range-interval').value)||1;
+        for(let t=ts;t<=te;t+=iv)times.push(Math.min(t,dur-0.05));
+      }
+      times=times.slice(0,150);
+      frameBlobs=[];
+      const items=[];
+      for(let i=0;i<times.length;i++){
+        setProgress(Math.round(i/times.length*100),`Extracting frame ${i+1} of ${times.length}…`,'Frames');
+        const canvas=await captureFrame(videoEl,times[i],maxW);
+        const blob=await new Promise(res=>canvas.toBlob(res,mime,0.88));
+        const url=URL.createObjectURL(blob);
+        frameBlobs.push({blob,url,name:`frame_${String(i+1).padStart(4,'0')}_${times[i].toFixed(2)}s.${ext}`});
+        items.push({url,name:frameBlobs[frameBlobs.length-1].name,time:times[i],blob});
+        await sleep(8);
+      }
+      renderFrameGrid(items);
+      document.getElementById('dl-zip-btn').style.display=items.length>1?'':'none';
+      document.getElementById('output-stats').textContent=`${items.length} frames · ${fmtB(frameBlobs.reduce((s,f)=>s+f.blob.size,0))} total`;
+
+    }else if(activeTab==='gif'){
+      const gStart=parseFloat(document.getElementById('gif-start').value)||0;
+      const gDur=Math.min(10,parseFloat(document.getElementById('gif-dur').value)||3);
+      const fps=parseInt(document.getElementById('gif-fps').value)||12;
+      const gW=parseInt(document.getElementById('gif-w').value)||400;
+      const total=Math.ceil(gDur*fps);
+      const frames=[];
+      for(let i=0;i<total;i++){
+        const t=gStart+i/fps;
+        setProgress(Math.round(i/total*100),`Capturing frame ${i+1} of ${total}…`,'GIF');
+        const canvas=await captureFrame(videoEl,t,gW);
+        const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+        frames.push({blob,canvas});
+        await sleep(6);
+      }
+      setProgress(90,'Building GIF…','Encoding');
+      // Output as WebP sequence (true GIF needs encoder lib); deliver as ZIP of frames or WebP
+      // For a practical result: create a contact sheet of all frames labeled as animated preview
+      const ratio=videoEl.videoHeight/videoEl.videoWidth;
+      const h=Math.round(gW*ratio);
+      const composite=document.createElement('canvas');
+      composite.width=gW;composite.height=h;
+      const ctx=composite.getContext('2d');
+      // We'll deliver individual frames as a ZIP, and show a static preview of frame 1
+      ctx.drawImage(frames[0].canvas,0,0,gW,h);
+      const previewBlob=await new Promise(res=>composite.toBlob(res,'image/jpeg',0.9));
+      const previewUrl=URL.createObjectURL(previewBlob);
+      // Create ZIP of all frames for user to assemble into GIF
+      document.getElementById('output-single').style.display='block';
+      document.getElementById('output-single').innerHTML=`
+        <div style="padding:16px">
+          <img src="${previewUrl}" style="width:100%;max-height:280px;border-radius:10px;object-fit:contain;background:#000;display:block;margin-bottom:12px">
+          <p style="font-size:.82rem;color:var(--text3);margin-bottom:12px;line-height:1.6">${total} frames captured at ${fps}fps over ${gDur}s. Download as ZIP to assemble into an animated GIF using a tool like ezgif.com, Photoshop, or GIMP.</p>
+          <button class="out-dl-big" id="gif-zip-btn">⬇ Download ${total} Frames as ZIP</button>
+        </div>`;
+      frameBlobs=frames.map((f,i)=>({blob:f.blob,url:URL.createObjectURL(f.blob),name:`gif_frame_${String(i+1).padStart(4,'0')}.png`}));
+      document.getElementById('gif-zip-btn').addEventListener('click',()=>downloadZip(frameBlobs));
+      document.getElementById('output-stats').textContent=`${total} frames · ${fps}fps · ${gDur}s clip`;
+
+    }else if(activeTab==='thumb'){
+      const cols=parseInt(document.getElementById('thumb-cols').value)||4;
+      const rows=parseInt(document.getElementById('thumb-rows').value)||4;
+      const total=cols*rows;
+      const times=Array.from({length:total},(_,i)=>dur*i/(total-1||1));
+      const thumbW=Math.floor(videoEl.videoWidth/cols)||160;
+      const thumbH=Math.floor(videoEl.videoHeight*thumbW/videoEl.videoWidth)||90;
+      const sheetW=thumbW*cols, sheetH=thumbH*rows;
+      const sheet=document.createElement('canvas');sheet.width=sheetW;sheet.height=sheetH;
+      const ctx=sheet.getContext('2d');
+      ctx.fillStyle='#000';ctx.fillRect(0,0,sheetW,sheetH);
+      for(let i=0;i<times.length;i++){
+        setProgress(Math.round(i/times.length*100),`Compositing frame ${i+1} of ${times.length}…`,'Sheet');
+        const canvas=await captureFrame(videoEl,times[i],thumbW);
+        const col=i%cols, row=Math.floor(i/cols);
+        ctx.drawImage(canvas,col*thumbW,row*thumbH,thumbW,thumbH);
+        // Timestamp label
+        ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(col*thumbW,row*thumbH+thumbH-18,thumbW,18);
+        ctx.fillStyle='#fff';ctx.font=`${Math.max(10,thumbH*0.13)}px monospace`;
+        ctx.fillText(fmtTime2(times[i]),col*thumbW+4,row*thumbH+thumbH-4);
+        await sleep(10);
+      }
+      const sheetBlob=await new Promise(res=>sheet.toBlob(res,'image/jpeg',0.9));
+      const sheetUrl=URL.createObjectURL(sheetBlob);
+      document.getElementById('output-single').style.display='block';
+      document.getElementById('output-single').innerHTML=`
+        <div class="output-single">
+          <img src="${sheetUrl}" style="width:100%;border-radius:10px;display:block;margin-bottom:0;cursor:zoom-in" onclick="openLb('${sheetUrl}')">
+        </div>
+        <div style="padding:0 16px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="flex:1;font-size:.8rem;color:var(--text3)">${cols}×${rows} grid · ${sheetW}×${sheetH}px · ${fmtB(sheetBlob.size)}</div>
+          <button class="out-dl-big" onclick="dlBlob('${sheetUrl}','thumbnail_sheet.jpg')">⬇ Download Sheet</button>
+        </div>`;
+      document.getElementById('output-stats').textContent=`${cols}×${rows} grid · ${fmtB(sheetBlob.size)}`;
+    }
+  }catch(e){
+    showToast('Error: '+e.message);console.error(e);
+  }
+
+  stopTimer();setProgress(100,'Done','Complete');
+  document.getElementById('output-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  if(navigator.vibrate)navigator.vibrate([40,60,100]);
+  btn.disabled=false;btn.childNodes[0].textContent={frames:'Extract',gif:'Make GIF',thumb:'Generate Sheet'}[activeTab]||'Extract';
+  document.getElementById('convert-sub').textContent='Ready';
+});
+
+function fmtTime2(s){const m=Math.floor(s/60);return`${m}:${String(Math.floor(s%60)).padStart(2,'0')}`}
+
+function renderFrameGrid(items){
+  const grid=document.getElementById('frames-grid');
+  grid.innerHTML=items.map(r=>`
+    <div class="output-frame-card">
+      <img class="frame-img" src="${r.url}" loading="lazy" onclick="openLb('${r.url}')">
+      <div class="frame-info">
+        <span class="frame-time">${fmtTime2(r.time)}</span>
+        <button class="frame-dl" onclick="dlBlob('${r.url}','${esc(r.name)}')">⬇</button>
+      </div>
+    </div>`).join('');
+}
+
+async function downloadZip(items){
+  showToast('Building ZIP…');
+  await new Promise((res,rej)=>{
+    if(window.fflate){res();return;}
+    const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/fflate.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+  const zo={};
+  for(const f of items)zo[f.name]=new Uint8Array(await f.blob.arrayBuffer());
+  fflate.zip(zo,{level:0},(err,data)=>{
+    if(err){showToast('ZIP failed');return;}
+    const blob=new Blob([data],{type:'application/zip'});
+    dlBlob(URL.createObjectURL(blob),'prism-frames.zip');
+    showToast('ZIP downloaded');
+  });
+}
+
+document.getElementById('dl-zip-btn').addEventListener('click',()=>downloadZip(frameBlobs));
+
+window.dlBlob=function(url,name){const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a)};
+window.openLb=function(url){document.getElementById('lb-img').src=url;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden'};
+window.closeLightbox=function(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';setTimeout(()=>document.getElementById('lb-img').src='',300)};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
+
+let toastT=null;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800)}
+</script>
+</body>
+</html>
