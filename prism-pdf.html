@@ -247,7 +247,7 @@ input,select{font-family:inherit}
       <div id="file-list" style="display:none"></div>
     </div>
 
-    <div class="card" id="controls-card" style="display:none">
+    <div class="card" id="controls-card">
       <div class="tabs-wrap">
         <div class="tabs" role="tablist">
           <button class="tab-btn active" data-tab="merge">Merge</button>
@@ -468,8 +468,14 @@ function addImgpdfFiles(newFiles){
   if(!valid.length){showToast('No image files found');return;}
   imgpdfFiles=[...imgpdfFiles,...valid];
   renderImgpdfList();
-  document.getElementById('convert-btn').disabled=false;
-  document.getElementById('convert-sub').textContent=`${imgpdfFiles.length} image${imgpdfFiles.length>1?'s':''} ready`;
+  // Only update convert button if we're on the imgpdf tab
+  const activeTab=document.querySelector('.tab-btn.active')?.dataset?.tab;
+  if(activeTab==='imgpdf'||!activeTab){
+    const convertBtn=document.getElementById('convert-btn');
+    convertBtn.disabled=false;
+    convertBtn.childNodes[0].textContent='Images → PDF';
+    document.getElementById('convert-sub').textContent=`${imgpdfFiles.length} image${imgpdfFiles.length>1?'s':''} ready`;
+  }
 }
 
 function renderImgpdfList(){
@@ -498,7 +504,18 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tab}`));
     const labels={merge:'Merge PDFs',split:'Split PDF',toimg:'Convert to Images',imgpdf:'Images → PDF',extract:'Extract Pages'};
-    document.getElementById('convert-btn').childNodes[0].textContent=labels[tab]||'Process';
+    const convertBtn=document.getElementById('convert-btn');
+    convertBtn.childNodes[0].textContent=labels[tab]||'Process';
+    // Enable/disable based on correct file list for this tab
+    if(tab==='imgpdf'){
+      convertBtn.disabled=imgpdfFiles.length===0;
+      document.getElementById('convert-sub').textContent=
+        imgpdfFiles.length>0?`${imgpdfFiles.length} image${imgpdfFiles.length>1?'s':''} ready`:'Add images below to begin';
+    }else{
+      convertBtn.disabled=files.length===0;
+      document.getElementById('convert-sub').textContent=
+        files.length>0?`${files.length} PDF${files.length>1?'s':''} ready`:'Add PDF files to begin';
+    }
   });
 });
 
@@ -610,8 +627,9 @@ function setProgress(pct,label,stage=''){document.getElementById('prog-bar').sty
 function setBadge(i,cls,text){const b=document.getElementById('badge-'+i);if(b){b.className='file-badge '+cls;b.textContent=text}}
 
 document.getElementById('convert-btn').addEventListener('click',async()=>{
-  if(!files.length)return;
   const activeTab=document.querySelector('.tab-btn.active').dataset.tab;
+  // imgpdf tab uses its own file list — skip the PDF files check
+  if(activeTab!=='imgpdf'&&!files.length)return;
   const btn=document.getElementById('convert-btn');
   btn.disabled=true;btn.childNodes[0].textContent='Processing…';
   document.getElementById('progress-wrap').style.display='block';
