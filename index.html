@@ -68,13 +68,14 @@ img{max-width:100%;display:block}
 #boot{
   position:fixed;inset:0;z-index:9999;
   background:#000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;
   animation:boot-exit 0.55s 2.8s cubic-bezier(0.4,0,0.2,1) forwards;
 }
 @keyframes boot-exit{to{opacity:0;visibility:hidden}}
-.boot-logo{animation:boot-fadein 0.7s 0.2s ease both}
-.boot-wordmark{font-size:1rem;font-weight:300;letter-spacing:0.3em;color:rgba(255,255,255,0.6);text-transform:uppercase;animation:boot-fadein 0.7s 0.5s ease both}
-.boot-bar-wrap{width:180px;animation:boot-fadein 0.7s 0.8s ease both}
+.boot-brand{display:flex;align-items:center;gap:16px;animation:boot-fadein 0.7s 0.2s ease both}
+.boot-logo{flex-shrink:0}
+.boot-wordmark{font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;color:#fff;line-height:1}
+.boot-bar-wrap{width:200px;animation:boot-fadein 0.7s 0.6s ease both}
 .boot-bar-track{height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden}
 .boot-bar-fill{height:100%;background:rgba(255,255,255,0.75);border-radius:1px;width:0%;animation:boot-progress 2.1s 0.9s cubic-bezier(0.4,0,0.55,1) forwards}
 @keyframes boot-fadein{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
@@ -346,7 +347,7 @@ img{max-width:100%;display:block}
 .prog-stage{font-size:.8rem;font-weight:500;color:var(--accent);margin-bottom:6px;transition:color .5s}
 
 /* ── OUTPUT SECTION ── */
-#output-wrap{display:none}
+#output-wrap{display:block}
 .output-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
 .output-title{font-size:.95rem;font-weight:600;color:var(--text1)}
 .output-stats{font-size:.75rem;color:var(--text3)}
@@ -440,6 +441,14 @@ img{max-width:100%;display:block}
 [data-theme="dark"] #toast{background:rgba(200,200,210,0.92);color:#1c1c1e}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
+/* ── OUTPUT EMPTY STATE ── */
+.output-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:44px 20px;
+  color:var(--text4);font-size:.82rem;text-align:center;
+}
+.output-empty svg{color:var(--text3)}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -447,6 +456,20 @@ img{max-width:100%;display:block}
 [data-theme="dark"] ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15)}
 
 /* ── RESPONSIVE ── */
+@media(max-width:480px){
+  html{font-size:15px}
+  .main{padding:12px 8px 80px}
+  .output-grid{grid-template-columns:1fr 1fr}
+  .presets-grid{grid-template-columns:1fr 1fr}
+  .form-row{flex-direction:column}
+  .form-row .form-group{min-width:unset;width:100%}
+  .header-status{display:none}
+  #drop-zone{min-height:160px;padding:24px 14px}
+  .card{border-radius:14px}
+  .tabs{gap:2px}
+  .tab-btn{font-size:.72rem;padding:6px 2px}
+  .exif-sheet{border-radius:16px 16px 0 0}
+}
 @media(max-width:600px){
   .main{padding:16px 10px 80px}
   .output-grid{grid-template-columns:1fr 1fr}
@@ -455,6 +478,10 @@ img{max-width:100%;display:block}
   .form-row .form-group{min-width:unset;width:100%}
   .header-status{display:none}
   #drop-zone{min-height:180px;padding:30px 16px}
+}
+@media(min-width:600px) and (max-width:900px){
+  .main{padding:20px 16px 90px}
+  .output-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
 }
 @media(min-width:900px){
   .main{padding:32px 24px 100px}
@@ -465,18 +492,20 @@ img{max-width:100%;display:block}
 
 <!-- ══ BOOT ══ -->
 <div id="boot">
-  <div class="boot-logo">
-    <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
-      <polygon points="29,3 55,53 3,53" stroke="rgba(255,255,255,0.85)" stroke-width="1.4" fill="rgba(255,255,255,0.04)"/>
-      <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1" class="boot-prism-ray"/>
-      <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1" class="boot-prism-ray"/>
-      <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1" class="boot-prism-ray"/>
-      <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1" class="boot-prism-ray"/>
-      <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1" class="boot-prism-ray"/>
-      <circle cx="29" cy="29" r="2.5" fill="rgba(255,255,255,0.6)"/>
-    </svg>
+  <div class="boot-brand">
+    <div class="boot-logo">
+      <svg width="52" height="52" viewBox="0 0 58 58" fill="none">
+        <polygon points="29,3 55,53 3,53" stroke="rgba(255,255,255,0.85)" stroke-width="1.4" fill="rgba(255,255,255,0.04)"/>
+        <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1" class="boot-prism-ray"/>
+        <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1" class="boot-prism-ray"/>
+        <circle cx="29" cy="29" r="2.5" fill="rgba(255,255,255,0.6)"/>
+      </svg>
+    </div>
+    <div class="boot-wordmark">Prism</div>
   </div>
-  <div class="boot-wordmark">Prism</div>
   <div class="boot-bar-wrap">
     <div class="boot-bar-track"><div class="boot-bar-fill"></div></div>
   </div>
@@ -796,6 +825,17 @@ img{max-width:100%;display:block}
         </div>
       </div>
       <div class="output-grid" id="output-grid"></div>
+      <div id="output-empty" class="output-empty">
+        <svg width="36" height="36" viewBox="0 0 58 58" fill="none" style="opacity:.25">
+          <polygon points="29,3 55,53 3,53" stroke="currentColor" stroke-width="2" fill="none"/>
+          <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1.2"/>
+        </svg>
+        <span>Your converted files will appear here</span>
+      </div>
     </div>
 
   </main>
@@ -1544,9 +1584,15 @@ document.getElementById('convert-btn').addEventListener('click', async () => {
 
   renderOutput(allResults);
   document.getElementById('output-wrap').style.display = 'block';
+  document.getElementById('output-empty').style.display = 'none';
   document.getElementById('dl-zip-btn').style.display = results.length > 1 ? '' : 'none';
   document.getElementById('dl-seq-btn').style.display = results.length > 1 ? '' : 'none';
   document.getElementById('output-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+
+  // Haptic feedback on mobile
+  if (navigator.vibrate && ok > 0) {
+    navigator.vibrate([40, 60, 100]);
+  }
 
   btn.textContent = 'Convert Again';
   btn.disabled = false;
@@ -1823,7 +1869,7 @@ async function convertPDF(file, fmt, quality, tw, th, pct, bgColor, padding, fil
     const ext = fmt==='jpeg'?'jpg':fmt;
     const mime = {webp:'image/webp',png:'image/png',jpeg:'image/jpeg',avif:'image/avif',bmp:'image/png'}[fmt]||'image/png';
     const blob = await new Promise(res => c.toBlob(res, mime, quality));
-    const name = `${strip(file.name)}_page${p}.${ext}`;
+    const name = `${p}.${ext}`;
     items.push({ blob, name, url: URL.createObjectURL(blob) });
   }
   return items;
