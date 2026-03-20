@@ -3,19 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Prism Video — Frame Extractor</title>
+<title>Prism Video</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;-webkit-text-size-adjust:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .3s,color .3s}
-button{font-family:inherit;cursor:pointer}
-input,select{font-family:inherit}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .3s,color .3s}
+button{font-family:inherit;cursor:pointer}input,select{font-family:inherit}
 :root{
-  --ah:16;--as:90%;--al:52%;
+  --ah:16;--as:88%;--al:50%;
   --accent:hsl(var(--ah),var(--as),var(--al));
-  --accent-soft:hsl(var(--ah),70%,65%);
-  --accent-bg:hsl(var(--ah),60%,97%);
-  --accent-border:hsl(var(--ah),50%,88%);
+  --accent-bg:hsl(var(--ah),60%,97%);--accent-border:hsl(var(--ah),50%,88%);
   --bg:#f2f2f7;--surface:rgba(255,255,255,0.78);--surface-solid:#fff;
   --border:rgba(0,0,0,0.08);--border2:rgba(255,255,255,0.85);
   --text1:#1c1c1e;--text2:#3a3a3c;--text3:#8e8e93;--text4:#aeaeb2;
@@ -34,135 +31,168 @@ input,select{font-family:inherit}
 [data-theme="dark"] .tab-btn.active{background:#2c2c2e;color:var(--text1)}
 [data-theme="dark"] .form-select,[data-theme="dark"] .form-input{background:rgba(44,44,46,0.8);border-color:rgba(255,255,255,0.1);color:var(--text1)}
 [data-theme="dark"] .preset-btn{background:rgba(44,44,46,0.7);border-color:rgba(255,255,255,0.07)}
-[data-theme="dark"] .output-frame-card{background:rgba(28,28,30,0.95)}
+[data-theme="dark"] .adj-slider{background:rgba(255,255,255,0.12)}
+[data-theme="dark"] .frame-card{background:rgba(28,28,30,0.95)}
+[data-theme="dark"] .timeline-outer{background:#100808}
+[data-theme="dark"] .ffmpeg-status{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08)}
 
-/* BOOT */
-#boot{position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;transition:opacity 0.55s ease;visibility:hidden}}
-.boot-brand{display:flex;align-items:center;gap:16px;animation:boot-fadein 0.7s 0.2s ease both}
-.boot-wordmark{font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;color:#fff;line-height:1}
-.boot-bar-wrap{width:200px;animation:boot-fadein 0.7s 0.6s ease both}
-.boot-bar-track{height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden}
-.boot-bar-fill{height:100%;background:rgba(255,255,255,0.75);border-radius:1px;width:0%;animation:boot-progress 2s 0.7s cubic-bezier(0.4,0,0.55,1) forwards}
-@keyframes boot-fadein{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
-@keyframes boot-progress{0%{width:0%}20%{width:28%}55%{width:62%}85%{width:88%}100%{width:100%}}
-.boot-prism-ray{animation:ray-pulse 2s ease-in-out infinite}
-.boot-prism-ray:nth-child(1){animation-delay:0s}.boot-prism-ray:nth-child(2){animation-delay:.15s}
-.boot-prism-ray:nth-child(3){animation-delay:.3s}.boot-prism-ray:nth-child(4){animation-delay:.45s}
-.boot-prism-ray:nth-child(5){animation-delay:.6s}
-@keyframes ray-pulse{0%,100%{opacity:.3}50%{opacity:.8}}
-#app{opacity:1}
-
-/* HEADER & NAV */
+/* HEADER */
 .header{position:sticky;top:0;z-index:100;height:52px;padding:0 max(20px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--header-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--border);transition:background .3s}
 .header-left{display:flex;align-items:center;gap:10px}
-.header-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),50%,92%);transition:all .4s;flex-shrink:0}
+.header-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),50%,92%);flex-shrink:0}
 [data-theme="dark"] .header-dot{box-shadow:0 0 0 3px hsl(var(--ah),30%,22%)}
 .header-name{font-weight:600;font-size:1rem;letter-spacing:-.015em;color:var(--text1)}
 .header-status{font-size:.75rem;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
 .header-right{display:flex;align-items:center;gap:6px}
-.header-icon-btn{width:32px;height:32px;border-radius:10px;border:none;background:rgba(0,0,0,0.05);color:var(--text2);display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s;flex-shrink:0}
-.header-icon-btn:hover{background:rgba(0,0,0,0.1);color:var(--text1)}
-[data-theme="dark"] .header-icon-btn{background:rgba(255,255,255,0.07);color:var(--text3)}
-[data-theme="dark"] .header-icon-btn:hover{background:rgba(255,255,255,0.12);color:var(--text1)}
-.app-nav{display:flex;gap:4px;overflow-x:auto;padding:10px max(16px,env(safe-area-inset-left));background:var(--header-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);scrollbar-width:none;-ms-overflow-style:none;transition:background .3s;position:sticky;top:52px;z-index:99}
+.hdr-btn{width:32px;height:32px;border-radius:10px;border:none;background:rgba(0,0,0,0.05);color:var(--text2);display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
+.hdr-btn:hover{background:rgba(0,0,0,0.1);color:var(--text1)}
+[data-theme="dark"] .hdr-btn{background:rgba(255,255,255,0.07);color:var(--text3)}
+[data-theme="dark"] .hdr-btn:hover{background:rgba(255,255,255,0.12);color:var(--text1)}
+
+/* NAV */
+.app-nav{display:flex;gap:4px;overflow-x:auto;padding:10px max(16px,env(safe-area-inset-left));background:var(--header-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);scrollbar-width:none;-ms-overflow-style:none;position:sticky;top:52px;z-index:99;transition:background .3s}
 .app-nav::-webkit-scrollbar{display:none}
 .nav-item{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:100px;font-size:.78rem;font-weight:500;color:var(--text3);text-decoration:none;white-space:nowrap;transition:background .2s,color .2s;flex-shrink:0;border:1px solid transparent}
 .nav-item:hover{background:rgba(0,0,0,0.06);color:var(--text1)}
 .nav-item.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px hsl(var(--ah),70%,72%)}
 .nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 [data-theme="dark"] .nav-item:hover{background:rgba(255,255,255,0.08)}
-.main{max-width:820px;margin:0 auto;padding:28px 16px 100px;display:flex;flex-direction:column;gap:16px}
+
+.main{max-width:820px;margin:0 auto;padding:24px 16px 100px;display:flex;flex-direction:column;gap:14px}
 .card{background:var(--surface);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .25s,background .3s}
 
-/* VIDEO PREVIEW */
-#drop-zone{position:relative;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px 24px;text-align:center;cursor:pointer;transition:background .25s}
+/* DROP */
+#drop-zone{position:relative;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:36px 24px;text-align:center;cursor:pointer;transition:background .25s}
 #drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:5}
 #drop-zone.dragover{background:var(--accent-bg);box-shadow:inset 0 0 0 2px var(--accent)}
-.drop-icon-wrap{width:64px;height:64px;border-radius:18px;background:hsl(var(--ah),45%,93%);display:flex;align-items:center;justify-content:center;transition:transform .25s}
-[data-theme="dark"] .drop-icon-wrap{background:hsl(var(--ah),30%,20%)}
-#drop-zone:hover .drop-icon-wrap{transform:scale(1.06)}
-.drop-icon{width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.drop-title{font-size:1.05rem;font-weight:600;color:var(--text1)}
-.drop-sub{font-size:.82rem;color:var(--text3);line-height:1.55;max-width:320px}
-.drop-pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:2px}
-.pill{font-size:.63rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:100px;background:hsl(var(--ah),45%,93%);color:var(--accent)}
+.dz-icon-wrap{width:58px;height:58px;border-radius:16px;background:hsl(var(--ah),45%,92%);display:flex;align-items:center;justify-content:center;transition:transform .25s}
+[data-theme="dark"] .dz-icon-wrap{background:hsl(var(--ah),30%,20%)}
+#drop-zone:hover .dz-icon-wrap{transform:scale(1.06)}
+.dz-icon{width:26px;height:26px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dz-title{font-size:1rem;font-weight:600;color:var(--text1)}
+.dz-sub{font-size:.8rem;color:var(--text3);line-height:1.5;max-width:320px}
+.pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.pill{font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:100px;background:hsl(var(--ah),45%,92%);color:var(--accent)}
 [data-theme="dark"] .pill{background:hsl(var(--ah),30%,20%)}
 
-/* VIDEO INFO STRIP */
-#video-info{display:none;padding:14px 16px;border-top:1px solid var(--border);gap:16px;flex-wrap:wrap}
-#video-info.visible{display:flex}
+/* FILE BAR */
+.file-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--border)}
+.file-icon-box{width:42px;height:42px;border-radius:10px;background:hsl(var(--ah),45%,92%);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+[data-theme="dark"] .file-icon-box{background:hsl(var(--ah),30%,20%)}
+.file-icon-box svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:.88rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text1)}
+.file-meta{font-size:.72rem;color:var(--text3);margin-top:2px}
+.file-clear{width:28px;height:28px;border-radius:8px;border:none;background:none;color:var(--text4);font-size:.85rem;cursor:pointer;transition:background .15s,color .15s}
+.file-clear:hover{background:rgba(255,59,48,.12);color:#ff3b30}
+
+/* VIDEO PREVIEW */
+.video-preview-wrap{padding:0;border-top:1px solid var(--border)}
+#video-preview{width:100%;max-height:280px;background:#000;display:block;object-fit:contain}
+.video-info-strip{display:flex;gap:16px;padding:10px 16px;flex-wrap:wrap;border-top:1px solid var(--border)}
 .v-stat{font-size:.75rem;color:var(--text3)}
 .v-stat strong{color:var(--text1);font-weight:600}
-#video-preview-wrap{display:none;padding:0 16px 16px}
-#video-preview-wrap.visible{display:block}
-#video-el{width:100%;max-height:280px;border-radius:10px;background:#000;display:block;object-fit:contain}
 
-/* CONTROLS */
+/* TIMELINE (trim) */
+.timeline-outer{position:relative;background:#180a0a;height:72px;overflow:hidden;cursor:crosshair;user-select:none;-webkit-user-select:none}
+#timeline-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.trim-region{position:absolute;top:0;height:100%;background:rgba(255,255,255,0.04);border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);pointer-events:none;z-index:1}
+.trim-handle{position:absolute;top:0;height:100%;width:18px;background:hsl(var(--ah),88%,58%);cursor:ew-resize;z-index:4;touch-action:none;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.trim-handle::after{content:"|||";color:rgba(255,255,255,0.9);font-size:.52rem;line-height:1}
+.trim-handle-l{transform:translateX(-50%)}
+.trim-handle-r{transform:translateX(50%)}
+.time-bubble{position:absolute;bottom:calc(100% + 7px);background:rgba(20,6,6,0.94);backdrop-filter:blur(8px);color:#fff;font-size:.68rem;font-weight:700;font-variant-numeric:tabular-nums;padding:3px 8px;border-radius:100px;white-space:nowrap;transform:translateX(-50%);pointer-events:none;z-index:10;border:1px solid rgba(255,255,255,0.1)}
+.playhead{position:absolute;top:0;height:100%;width:2px;background:rgba(255,255,255,0.85);pointer-events:none;z-index:3;transform:translateX(-50%)}
+.playhead::after{content:"";position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#fff}
+.timeline-labels{display:flex;justify-content:space-between;padding:6px 16px 10px;font-size:.72rem;font-variant-numeric:tabular-nums;color:var(--text3);background:var(--surface-solid)}
+.tl-s{color:var(--accent);font-weight:700}
+.tl-e{color:var(--accent);font-weight:700}
+.transport{display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:1px solid var(--border)}
+.tport-play{width:42px;height:42px;border-radius:50%;border:none;flex-shrink:0;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;transition:filter .2s,transform .15s;box-shadow:0 2px 10px hsl(var(--ah),70%,72%)}
+.tport-play:hover{filter:brightness(1.1)}.tport-play:active{transform:scale(.92)}
+.tport-time{font-size:.82rem;font-variant-numeric:tabular-nums;font-weight:500;color:var(--text2);min-width:70px}
+.tport-dur{font-size:.78rem;color:var(--text3);font-variant-numeric:tabular-nums}
+
+/* FFMPEG STATUS */
+.ffmpeg-status{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-xs);background:rgba(0,0,0,0.03);border:1px solid var(--border);font-size:.78rem;color:var(--text2);margin-bottom:12px}
+.ffmpeg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#8e8e93}
+.ffmpeg-dot.loading{background:#ff9500;animation:pulse .8s ease-in-out infinite alternate}
+.ffmpeg-dot.ready{background:#34c759}
+.ffmpeg-dot.error{background:#ff3b30}
+@keyframes pulse{to{opacity:.4}}
+
+/* TABS */
 .tabs-wrap{padding:12px 16px;border-bottom:1px solid var(--border)}
-.tabs{display:flex;gap:4px;background:rgba(0,0,0,0.05);border-radius:11px;padding:3px}
-.tab-btn{flex:1;font-size:.8rem;font-weight:500;border:none;background:none;padding:7px 4px;border-radius:8px;color:var(--text3);transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap}
+.tabs{display:flex;gap:3px;background:rgba(0,0,0,0.05);border-radius:11px;padding:3px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{flex:1;min-width:fit-content;font-size:.76rem;font-weight:500;border:none;background:none;padding:6px 8px;border-radius:8px;color:var(--text3);transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap}
 .tab-btn.active{background:#fff;color:var(--text1);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
 .tab-panel{display:none;padding:16px}
 .tab-panel.active{display:block}
+
+/* FORM */
 .form-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap}
 .form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:110px}
 .form-label{font-size:.72rem;font-weight:500;color:var(--text2)}
 .form-label span{color:var(--text3);font-weight:400}
-.form-select,.form-input{width:100%;padding:9px 12px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.12);background:rgba(255,255,255,0.8);font-size:.88rem;color:var(--text1);outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
-.form-select:focus,.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),70%,92%)}
+.form-select,.form-input{width:100%;padding:9px 12px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.12);background:rgba(255,255,255,0.8);font-size:.88rem;color:var(--text1);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+.form-select:focus,.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px hsl(var(--ah),60%,92%)}
 .form-select-wrap{position:relative}
-.form-select-wrap::after{content:'⌄';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.form-select-wrap::after{content:"⌄";position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
 .adj-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.adj-label{font-size:.72rem;font-weight:500;color:var(--text2);min-width:76px;flex-shrink:0}
+.adj-label{font-size:.72rem;font-weight:500;color:var(--text2);min-width:90px;flex-shrink:0}
 .adj-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(0,0,0,0.1);outline:none;cursor:pointer}
-[data-theme="dark"] .adj-slider{background:rgba(255,255,255,0.12)}
 .adj-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,0.25)}
-.adj-val{font-size:.75rem;font-weight:600;color:var(--accent);min-width:40px;text-align:right}
+.adj-val{font-size:.75rem;font-weight:600;color:var(--accent);min-width:42px;text-align:right}
 
-/* PRESET BUTTONS */
-.frame-presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:8px}
-.preset-btn{padding:8px 10px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,255,0.7);font-size:.72rem;font-weight:500;color:var(--text2);text-align:left;line-height:1.4;transition:background .15s,border-color .2s,color .2s}
+/* PRESETS GRID */
+.presets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:8px}
+.preset-btn{padding:8px 10px;border-radius:var(--radius-xs);border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,255,0.7);font-size:.72rem;font-weight:500;color:var(--text2);text-align:left;line-height:1.4;transition:background .15s,border-color .2s,color .2s;cursor:pointer}
 .preset-btn:hover{background:hsl(var(--ah),45%,93%);border-color:var(--accent-border);color:var(--accent)}
 .preset-name{font-weight:600;font-size:.7rem;color:var(--text1);display:block}
 .preset-sub{font-size:.63rem;color:var(--text3)}
 
 /* CONVERT BTN */
 .convert-wrap{padding:16px}
-#convert-btn{width:100%;padding:14px;border-radius:13px;border:none;background:var(--accent);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:background .4s,transform .15s,box-shadow .25s,opacity .2s;box-shadow:0 4px 14px hsl(var(--ah),70%,75%)}
-#convert-btn:hover:not(:disabled){filter:brightness(1.05);box-shadow:0 6px 20px hsl(var(--ah),65%,72%)}
-#convert-btn:active:not(:disabled){transform:scale(0.98)}
+#convert-btn{width:100%;padding:13px;border-radius:13px;border:none;background:var(--accent);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:background .4s,transform .15s,box-shadow .25s,opacity .2s;box-shadow:0 4px 14px hsl(var(--ah),70%,72%)}
+#convert-btn:hover:not(:disabled){filter:brightness(1.05)}
+#convert-btn:active:not(:disabled){transform:scale(.98)}
 #convert-btn:disabled{opacity:.45;cursor:not-allowed}
-#convert-btn .btn-sub{display:block;font-size:.72rem;font-weight:400;opacity:.8;margin-top:2px}
-#progress-wrap{display:none;padding:14px 16px}
+#convert-btn .sub{display:block;font-size:.72rem;font-weight:400;opacity:.8;margin-top:2px}
+
+/* PROGRESS */
+#prog-wrap{display:none;padding:14px 16px}
 .prog-bar-track{height:3px;background:rgba(0,0,0,0.06);border-radius:2px;overflow:hidden}
 [data-theme="dark"] .prog-bar-track{background:rgba(255,255,255,0.1)}
-.prog-bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s}
+.prog-bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .4s}
 .prog-label{font-size:.75rem;color:var(--text3);margin-top:6px;display:flex;justify-content:space-between}
-.prog-stage{font-size:.8rem;font-weight:500;color:var(--accent);margin-bottom:6px}
+.prog-stage{font-size:.8rem;font-weight:500;color:var(--accent);margin-bottom:5px}
 
 /* FRAMES GRID */
-.output-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
 .output-title{font-size:.95rem;font-weight:600;color:var(--text1)}
 .output-stats{font-size:.75rem;color:var(--text3)}
-.dl-all-btn{padding:7px 16px;border-radius:100px;border:none;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px hsl(var(--ah),70%,75%)}
+.dl-all-btn{padding:7px 16px;border-radius:100px;border:none;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px hsl(var(--ah),70%,72%)}
 .dl-all-btn:hover{filter:brightness(1.05)}
-.frames-grid{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
-.output-frame-card{border-radius:10px;border:1px solid var(--border);overflow:hidden;background:rgba(255,255,255,0.9);transition:box-shadow .2s,transform .2s}
-.output-frame-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
-.frame-img{width:100%;height:110px;object-fit:cover;display:block;cursor:zoom-in}
-.frame-info{padding:8px 10px;display:flex;align-items:center;justify-content:space-between}
-.frame-time{font-size:.72rem;color:var(--text3);font-variant-numeric:tabular-nums}
-.frame-dl{padding:4px 10px;border-radius:100px;border:none;background:hsl(var(--ah),45%,92%);color:var(--accent);font-size:.68rem;font-weight:600;cursor:pointer}
-.frame-dl:hover{background:hsl(var(--ah),45%,85%)}
-[data-theme="dark"] .frame-dl{background:hsl(var(--ah),30%,18%)}
+.frames-grid{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px}
+.frame-card{border-radius:10px;border:1px solid var(--border);overflow:hidden;background:rgba(255,255,255,0.9);transition:box-shadow .2s,transform .2s}
+.frame-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.frame-img{width:100%;height:100px;object-fit:cover;display:block;cursor:zoom-in}
+.frame-label{padding:6px 8px;display:flex;align-items:center;justify-content:space-between}
+.frame-time{font-size:.7rem;color:var(--text3);font-variant-numeric:tabular-nums}
+.frame-dl{background:none;border:none;color:var(--accent);font-size:.7rem;font-weight:600;cursor:pointer;padding:2px 4px}
 
-/* GIF mode */
-.gif-preview{width:100%;max-height:300px;border-radius:10px;background:#000;display:block;object-fit:contain}
-.output-single{padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.out-dl-big{padding:10px 22px;border-radius:100px;border:none;background:var(--accent);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 2px 10px hsl(var(--ah),70%,72%)}
-.out-dl-big:hover{filter:brightness(1.06)}
-
-.output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:44px 20px;color:var(--text4);font-size:.82rem;text-align:center}
+/* OUTPUT (single file) */
+.out-single{padding:14px 16px}
+.out-row{display:flex;align-items:center;gap:12px}
+.out-icon{width:40px;height:40px;border-radius:9px;background:hsl(var(--ah),45%,92%);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+[data-theme="dark"] .out-icon{background:hsl(var(--ah),30%,18%)}
+.out-icon svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round}
+.out-info{flex:1;min-width:0}
+.out-name{font-size:.88rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text1)}
+.out-meta{font-size:.72rem;color:var(--text3);margin-top:2px}
+.out-dl{padding:7px 16px;border-radius:100px;border:none;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.out-dl:hover{filter:brightness(1.08)}
 
 /* LIGHTBOX */
 #lightbox{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .2s;background:rgba(0,0,0,0)}
@@ -172,543 +202,945 @@ input,select{font-family:inherit}
 .lb-close{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .lb-close:hover{background:rgba(255,255,255,0.25)}
 
+/* INFO BOX */
+.info-box{padding:9px 12px;border-radius:var(--radius-xs);background:var(--accent-bg);border:1px solid var(--accent-border);font-size:.74rem;color:var(--text2);line-height:1.6;margin-top:8px}
+
+/* OUTPUT EMPTY */
+.out-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:36px 20px;color:var(--text4);font-size:.82rem;text-align:center}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)}
+[data-theme="dark"] .toggle-row{border-color:rgba(255,255,255,0.05)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-title{font-size:.85rem;color:var(--text1)}
+.toggle-desc{font-size:.7rem;color:var(--text3);margin-top:1px}
+.toggle{position:relative;width:42px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;border-radius:12px;background:#e5e5ea;cursor:pointer;transition:background .25s}
+.toggle input:checked+.toggle-track{background:var(--accent)}
+.toggle-track::before{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:2px;left:2px;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform .25s}
+.toggle input:checked+.toggle-track::before{transform:translateX(18px)}
+[data-theme="dark"] .toggle-track{background:rgba(255,255,255,0.15)}
+
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(28,28,30,0.92);backdrop-filter:blur(12px);color:#fff;font-size:.82rem;padding:10px 20px;border-radius:100px;pointer-events:none;transition:transform .3s cubic-bezier(0.34,1.56,0.64,1),opacity .3s;opacity:0;white-space:nowrap;z-index:999}
 [data-theme="dark"] #toast{background:rgba(200,200,210,0.92);color:#1c1c1e}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:3px}
 [data-theme="dark"] ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15)}
-@media(max-width:480px){html{font-size:15px}.main{padding:12px 8px 80px}.header-status{display:none}.frames-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){html{font-size:15px}.main{padding:12px 8px 80px}.header-status{display:none}.form-row{flex-direction:column}.form-row .form-group{min-width:unset;width:100%}.frames-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.main{padding:16px 10px 80px}.header-status{display:none}.frames-grid{grid-template-columns:1fr 1fr}}
-@media(min-width:900px){.main{padding:32px 24px 100px}}
+@media(min-width:900px){.main{padding:28px 24px 100px}}
 </style>
 </head>
 <body>
-
-<div id="boot">
-  <div class="boot-brand">
-    <div class="boot-logo">
-      <svg width="52" height="52" viewBox="0 0 58 58" fill="none">
-        <polygon points="29,3 55,53 3,53" stroke="rgba(255,255,255,0.85)" stroke-width="1.4" fill="rgba(255,255,255,0.04)"/>
-        <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1" class="boot-prism-ray"/>
-        <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1" class="boot-prism-ray"/>
-        <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1" class="boot-prism-ray"/>
-        <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1" class="boot-prism-ray"/>
-        <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1" class="boot-prism-ray"/>
-        <circle cx="29" cy="29" r="2.5" fill="rgba(255,255,255,0.6)"/>
-      </svg>
-    </div>
-    <div class="boot-wordmark">Prism</div>
-  </div>
-  <div class="boot-bar-wrap"><div class="boot-bar-track"><div class="boot-bar-fill"></div></div></div>
-</div>
-
 <div id="app">
-  <header class="header">
-    <div class="header-left">
-      <div class="header-dot"></div>
-      <span class="header-name">Prism</span>
+<header class="header">
+  <div class="header-left"><div class="header-dot"></div><span class="header-name">Prism</span></div>
+  <div class="header-status">Video</div>
+  <div class="header-right">
+    <button class="hdr-btn" id="dark-mode-btn" aria-label="Toggle dark mode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="icon-sun" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</header>
+
+<nav class="app-nav">
+  <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Images</a>
+  <a href="prism-audio.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Audio</a>
+  <a href="prism-video.html" class="nav-item active"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video</a>
+  <a href="prism-pdf.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</a>
+  <a href="prism-docs.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Documents</a>
+  <a href="prism-archive.html" class="nav-item"><svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg>Archive</a>
+</nav>
+
+<main class="main">
+
+  <!-- DROP ZONE -->
+  <div class="card">
+    <div id="drop-zone">
+      <input type="file" id="file-input" accept="video/*,.mp4,.mov,.webm,.mkv,.avi,.flv,.ts,.m4v,.3gp">
+      <div class="dz-icon-wrap">
+        <svg class="dz-icon" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      </div>
+      <div class="dz-title">Drop a video here</div>
+      <div class="dz-sub">Convert formats, trim, extract audio, grab frames</div>
+      <div class="pills">
+        <span class="pill">MP4</span><span class="pill">MOV</span><span class="pill">WebM</span>
+        <span class="pill">MKV</span><span class="pill">AVI</span><span class="pill">FLV</span><span class="pill">TS</span>
+      </div>
     </div>
-    <div class="header-status">Video Tools</div>
-    <div class="header-right">
-      <button class="header-icon-btn" id="dark-mode-btn" aria-label="Toggle dark mode">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon-sun" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <div class="file-bar" id="file-bar" style="display:none"></div>
+
+    <!-- VIDEO PREVIEW -->
+    <div class="video-preview-wrap" id="video-preview-wrap" style="display:none">
+      <video id="video-preview" controls preload="metadata"></video>
+      <div class="video-info-strip" id="video-info-strip"></div>
+    </div>
+  </div>
+
+  <!-- PLAYER / TRIM TIMELINE -->
+  <div class="card" id="player-card" style="display:none">
+    <div style="padding:12px 16px 10px;font-size:.8rem;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border)">Trim</div>
+    <div style="position:relative">
+      <div class="timeline-outer" id="timeline-outer">
+        <canvas id="timeline-canvas"></canvas>
+        <div class="trim-region" id="trim-region"></div>
+        <div class="trim-handle trim-handle-l" id="handle-l"><div class="time-bubble" id="bubble-l">0:00.0</div></div>
+        <div class="trim-handle trim-handle-r" id="handle-r"><div class="time-bubble" id="bubble-r">0:00.0</div></div>
+        <div class="playhead" id="playhead" style="left:0"></div>
+      </div>
+      <div class="timeline-labels">
+        <span class="tl-s" id="tl-s">0:00.0</span>
+        <span style="color:var(--text4)" id="tl-total">0:00</span>
+        <span class="tl-e" id="tl-e">0:00.0</span>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="tport-play" id="play-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white" id="play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
       </button>
+      <span class="tport-time" id="tport-time">0:00.0</span>
+      <div style="flex:1"></div>
+      <span class="tport-dur" id="tport-dur"></span>
     </div>
-  </header>
+  </div>
 
-  <nav class="app-nav">
-    <a href="prism.html" class="nav-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Images</a>
-    <a href="prism-audio.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Audio</a>
-    <a href="prism-video.html" class="nav-item active"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video</a>
-    <a href="prism-pdf.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>PDF</a>
-    <a href="prism-docs.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Documents</a>
-    <a href="prism-archive.html" class="nav-item"><svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Archive</a>
-  </nav>
-
-  <main class="main">
-
-    <div class="card">
-      <div id="drop-zone">
-        <input type="file" id="file-input" accept="video/*,.mp4,.mov,.avi,.webm,.mkv,.m4v">
-        <div class="drop-icon-wrap">
-          <svg class="drop-icon" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        </div>
-        <div class="drop-title">Drop a video here</div>
-        <div class="drop-sub">Extract frames as images, create GIFs from clips, or generate thumbnail sheets</div>
-        <div class="drop-pills">
-          <span class="pill">MP4</span><span class="pill">MOV</span><span class="pill">AVI</span>
-          <span class="pill">WebM</span><span class="pill">MKV</span><span class="pill">M4V</span>
-        </div>
-      </div>
-      <div id="video-preview-wrap">
-        <video id="video-el" controls preload="metadata"></video>
-      </div>
-      <div id="video-info">
-        <div class="v-stat">Duration: <strong id="v-dur">—</strong></div>
-        <div class="v-stat">Resolution: <strong id="v-res">—</strong></div>
-        <div class="v-stat">File size: <strong id="v-size">—</strong></div>
-        <div class="v-stat">Format: <strong id="v-fmt">—</strong></div>
+  <!-- CONTROLS -->
+  <div class="card" id="controls-card" style="display:none">
+    <div class="tabs-wrap">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="convert">Convert</button>
+        <button class="tab-btn" data-tab="trim">Trim &amp; Export</button>
+        <button class="tab-btn" data-tab="audio">→ Audio</button>
+        <button class="tab-btn" data-tab="frames">Frames</button>
+        <button class="tab-btn" data-tab="sheet">Thumb Sheet</button>
       </div>
     </div>
 
-    <div class="card" id="controls-card" style="display:none">
-      <div class="tabs-wrap">
-        <div class="tabs" role="tablist">
-          <button class="tab-btn active" data-tab="frames">Extract Frames</button>
-          <button class="tab-btn" data-tab="gif">Make GIF</button>
-          <button class="tab-btn" data-tab="thumb">Thumbnail Sheet</button>
+    <!-- CONVERT TAB -->
+    <div class="tab-panel active" id="tab-convert">
+      <div class="ffmpeg-status" id="ffmpeg-status">
+        <div class="ffmpeg-dot loading" id="ffmpeg-dot"></div>
+        <span id="ffmpeg-label">FFmpeg loading… (~30MB first run, then cached)</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Output format</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="out-fmt">
+              <option value="mp4">MP4 — H.264, universal</option>
+              <option value="webm">WebM — VP9, web optimised</option>
+              <option value="mkv">MKV — Matroska container</option>
+              <option value="mov">MOV — QuickTime</option>
+              <option value="avi">AVI — Legacy compatibility</option>
+              <option value="flv">FLV — Flash/streaming</option>
+              <option value="ts">TS — Transport stream</option>
+              <option value="3gp">3GP — Mobile</option>
+              <option value="gif">GIF — Animated (short clips)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Codec</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="out-codec">
+              <option value="auto">Auto (match format)</option>
+              <option value="libx264">H.264 — widest support</option>
+              <option value="libx265">H.265 — smaller files</option>
+              <option value="libvpx-vp9">VP9 — WebM</option>
+              <option value="libvpx">VP8 — WebM legacy</option>
+              <option value="copy">Copy — no re-encode (fastest)</option>
+            </select>
+          </div>
         </div>
       </div>
-
-      <!-- FRAMES TAB -->
-      <div class="tab-panel active" id="tab-frames">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Mode</label>
-            <div class="form-select-wrap">
-              <select class="form-select" id="frame-mode">
-                <option value="interval">Every N seconds</option>
-                <option value="count">Total frame count</option>
-                <option value="range">Time range</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group" id="interval-group">
-            <label class="form-label">Interval <span>(seconds)</span></label>
-            <input type="number" class="form-input" id="frame-interval" value="1" min="0.1" step="0.1">
-          </div>
-          <div class="form-group" id="count-group" style="display:none">
-            <label class="form-label">Frame count</label>
-            <input type="number" class="form-input" id="frame-count" value="12" min="1" max="200">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Resolution</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="out-res">
+              <option value="original">Original</option>
+              <option value="3840x2160">4K — 3840×2160</option>
+              <option value="1920x1080">1080p — 1920×1080</option>
+              <option value="1280x720">720p — 1280×720</option>
+              <option value="854x480">480p — 854×480</option>
+              <option value="640x360">360p — 640×360</option>
+            </select>
           </div>
         </div>
-        <div class="form-row" id="range-group" style="display:none">
-          <div class="form-group">
-            <label class="form-label">Start <span>(s)</span></label>
-            <input type="number" class="form-input" id="range-start" value="0" min="0" step="0.1">
+        <div class="form-group">
+          <label class="form-label">Frame rate</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="out-fps">
+              <option value="original">Original</option>
+              <option value="60">60 fps</option>
+              <option value="30">30 fps</option>
+              <option value="25">25 fps</option>
+              <option value="24">24 fps</option>
+              <option value="15">15 fps</option>
+            </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">End <span>(s)</span></label>
-            <input type="number" class="form-input" id="range-end" placeholder="End of video" min="0" step="0.1">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Every <span>(s)</span></label>
-            <input type="number" class="form-input" id="range-interval" value="1" min="0.1" step="0.1">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Output Format</label>
-            <div class="form-select-wrap">
-              <select class="form-select" id="frame-fmt">
-                <option value="png">PNG — Lossless</option>
-                <option value="jpeg" selected>JPEG — Smaller files</option>
-                <option value="webp">WebP — Best compression</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Max width <span>(px)</span></label>
-            <input type="number" class="form-input" id="frame-width" placeholder="Original" min="100" max="7680">
-          </div>
-        </div>
-        <div class="form-label" style="margin-bottom:8px">Quick presets</div>
-        <div class="frame-presets">
-          <button class="preset-btn" onclick="setFrameMode('interval',2)"><span class="preset-name">Every 2s</span><span class="preset-sub">General preview</span></button>
-          <button class="preset-btn" onclick="setFrameMode('interval',5)"><span class="preset-name">Every 5s</span><span class="preset-sub">Long video overview</span></button>
-          <button class="preset-btn" onclick="setFrameMode('count',12)"><span class="preset-name">12 frames</span><span class="preset-sub">Fixed grid</span></button>
-          <button class="preset-btn" onclick="setFrameMode('count',24)"><span class="preset-name">24 frames</span><span class="preset-sub">Detailed grid</span></button>
         </div>
       </div>
-
-      <!-- GIF TAB -->
-      <div class="tab-panel" id="tab-gif">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Start time <span>(s)</span></label>
-            <input type="number" class="form-input" id="gif-start" value="0" min="0" step="0.1">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Duration <span>(s, max 10)</span></label>
-            <input type="number" class="form-input" id="gif-dur" value="3" min="0.5" max="10" step="0.5">
-          </div>
-        </div>
-        <div class="adj-row">
-          <span class="adj-label">Frame rate</span>
-          <input type="range" class="adj-slider" id="gif-fps" min="5" max="30" value="12">
-          <span class="adj-val" id="gif-fps-val">12 fps</span>
-        </div>
-        <div class="adj-row">
-          <span class="adj-label">Width</span>
-          <input type="range" class="adj-slider" id="gif-w" min="100" max="800" value="400" step="50">
-          <span class="adj-val" id="gif-w-val">400px</span>
-        </div>
-        <div style="margin-top:8px;padding:10px 12px;border-radius:var(--radius-xs);background:var(--accent-bg);border:1px solid var(--accent-border);font-size:.75rem;color:var(--text2);line-height:1.6">
-          💡 GIF is generated frame-by-frame using Canvas. For best results keep duration under 5s. Large dimensions increase file size significantly.
-        </div>
+      <div class="adj-row">
+        <span class="adj-label">Quality (CRF)</span>
+        <input type="range" class="adj-slider" id="crf-slider" min="0" max="51" value="23">
+        <span class="adj-val" id="crf-val">23</span>
       </div>
-
-      <!-- THUMBNAIL TAB -->
-      <div class="tab-panel" id="tab-thumb">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Grid columns</label>
-            <div class="form-select-wrap">
-              <select class="form-select" id="thumb-cols">
-                <option value="3">3 columns</option>
-                <option value="4" selected>4 columns</option>
-                <option value="5">5 columns</option>
-                <option value="6">6 columns</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Grid rows</label>
-            <div class="form-select-wrap">
-              <select class="form-select" id="thumb-rows">
-                <option value="3">3 rows</option>
-                <option value="4" selected>4 rows</option>
-                <option value="5">5 rows</option>
-                <option value="6">6 rows</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div style="padding:10px 12px;border-radius:var(--radius-xs);background:var(--accent-bg);border:1px solid var(--accent-border);font-size:.75rem;color:var(--text2);line-height:1.6">
-          Generates a single composite image with equally-spaced frames arranged in a grid — ideal for video previews or shot lists.
-        </div>
+      <div style="font-size:.7rem;color:var(--text3);margin-bottom:10px;margin-top:-4px">Lower = better quality, larger file · 18 = high quality · 28 = smaller</div>
+      <div class="toggle-row">
+        <div><div class="toggle-title">Remove audio</div><div class="toggle-desc">Strip audio track from output</div></div>
+        <label class="toggle"><input type="checkbox" id="no-audio"><span class="toggle-track"></span></label>
       </div>
-
-      <div class="convert-wrap">
-        <button id="convert-btn" disabled>Extract<span class="btn-sub" id="convert-sub">Add a video to begin</span></button>
-      </div>
-      <div id="progress-wrap">
-        <div class="prog-stage" id="prog-stage"></div>
-        <div class="prog-bar-track"><div class="prog-bar-fill" id="prog-bar"></div></div>
-        <div class="prog-label"><span id="prog-label">Processing…</span><span id="prog-timer">0.00s</span></div>
+      <div class="toggle-row">
+        <div><div class="toggle-title">Use trim region</div><div class="toggle-desc">Only convert the trimmed section</div></div>
+        <label class="toggle"><input type="checkbox" id="use-trim"><span class="toggle-track"></span></label>
       </div>
     </div>
 
-    <div class="card" id="output-wrap">
-      <div class="output-header">
-        <div>
-          <div class="output-title">Output</div>
-          <div class="output-stats" id="output-stats"></div>
+    <!-- TRIM TAB -->
+    <div class="tab-panel" id="tab-trim">
+      <p style="font-size:.85rem;color:var(--text2);margin-bottom:12px;line-height:1.65">Use the trim handles on the timeline above to set start and end points. The trimmed section will be exported.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Output format</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="trim-fmt">
+              <option value="mp4">MP4</option>
+              <option value="webm">WebM</option>
+              <option value="mkv">MKV</option>
+              <option value="mov">MOV</option>
+            </select>
+          </div>
         </div>
-        <button class="dl-all-btn" id="dl-zip-btn" style="display:none">⬇ ZIP All</button>
+        <div class="form-group">
+          <label class="form-label">Re-encode</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="trim-encode">
+              <option value="copy">Stream copy — fast, exact keyframes</option>
+              <option value="reencode">Re-encode — precise cut, slower</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="frames-grid" id="frames-grid"></div>
-      <div id="output-single" style="display:none"></div>
-      <div id="output-empty" class="output-empty">
-        <svg width="34" height="34" viewBox="0 0 58 58" fill="none" style="opacity:.22">
-          <polygon points="29,3 55,53 3,53" stroke="currentColor" stroke-width="2" fill="none"/>
-          <line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1.2"/>
-          <line x1="29" y1="3" x2="17" y2="53" stroke="#ffd93d" stroke-width="1.2"/>
-          <line x1="29" y1="3" x2="26" y2="53" stroke="#6bcb77" stroke-width="1.2"/>
-          <line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1.2"/>
-          <line x1="29" y1="3" x2="47" y2="53" stroke="#c77dff" stroke-width="1.2"/>
-        </svg>
-        <span>Extracted frames will appear here</span>
+      <div style="font-size:.78rem;color:var(--text3);line-height:1.6;padding:8px 12px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:var(--radius-xs)">
+        <strong style="color:var(--text2)">Stream copy</strong> is instant but cuts on the nearest keyframe. <strong style="color:var(--text2)">Re-encode</strong> is frame-accurate but takes longer.
       </div>
     </div>
-  </main>
+
+    <!-- AUDIO EXTRACTION TAB -->
+    <div class="tab-panel" id="tab-audio">
+      <p style="font-size:.85rem;color:var(--text2);margin-bottom:12px;line-height:1.65">Extract the audio track from your video as a standalone audio file.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Audio format</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="audio-fmt">
+              <option value="mp3">MP3 — compressed, universal</option>
+              <option value="wav">WAV — lossless</option>
+              <option value="aac">AAC — high quality compressed</option>
+              <option value="ogg">OGG Vorbis — open format</option>
+              <option value="flac">FLAC — lossless compressed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bitrate <span>(MP3/AAC)</span></label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="audio-bitrate">
+              <option value="320k">320 kbps — Studio</option>
+              <option value="256k">256 kbps — High</option>
+              <option value="192k" selected>192 kbps — Standard</option>
+              <option value="128k">128 kbps — Web</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div><div class="toggle-title">Use trim region</div><div class="toggle-desc">Extract audio only from the trimmed section</div></div>
+        <label class="toggle"><input type="checkbox" id="audio-use-trim"><span class="toggle-track"></span></label>
+      </div>
+    </div>
+
+    <!-- FRAMES TAB -->
+    <div class="tab-panel" id="tab-frames">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Mode</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="frame-mode">
+              <option value="interval">Every N seconds</option>
+              <option value="count">Total frame count</option>
+              <option value="range">Time range</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="interval-grp">
+          <label class="form-label">Interval <span>(s)</span></label>
+          <input type="number" class="form-input" id="frame-interval" value="1" min="0.1" step="0.1">
+        </div>
+        <div class="form-group" id="count-grp" style="display:none">
+          <label class="form-label">Count</label>
+          <input type="number" class="form-input" id="frame-count" value="12" min="1" max="200">
+        </div>
+      </div>
+      <div class="form-row" id="range-grp" style="display:none">
+        <div class="form-group"><label class="form-label">Start <span>(s)</span></label><input type="number" class="form-input" id="range-start" value="0" min="0" step="0.1"></div>
+        <div class="form-group"><label class="form-label">End <span>(s)</span></label><input type="number" class="form-input" id="range-end" placeholder="End" min="0" step="0.1"></div>
+        <div class="form-group"><label class="form-label">Every <span>(s)</span></label><input type="number" class="form-input" id="range-iv" value="1" min="0.1" step="0.1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="frame-fmt">
+              <option value="jpeg" selected>JPEG</option>
+              <option value="png">PNG</option>
+              <option value="webp">WebP</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max width <span>(px)</span></label>
+          <input type="number" class="form-input" id="frame-width" placeholder="Original" min="100" max="7680">
+        </div>
+      </div>
+      <div class="form-label" style="margin-bottom:6px">Quick presets</div>
+      <div class="presets-grid">
+        <button class="preset-btn" onclick="setFramePreset('interval',1)"><span class="preset-name">Every 1s</span><span class="preset-sub">Dense extraction</span></button>
+        <button class="preset-btn" onclick="setFramePreset('interval',5)"><span class="preset-name">Every 5s</span><span class="preset-sub">Overview</span></button>
+        <button class="preset-btn" onclick="setFramePreset('count',12)"><span class="preset-name">12 frames</span><span class="preset-sub">Fixed grid</span></button>
+        <button class="preset-btn" onclick="setFramePreset('count',24)"><span class="preset-name">24 frames</span><span class="preset-sub">Detailed</span></button>
+      </div>
+    </div>
+
+    <!-- THUMB SHEET TAB -->
+    <div class="tab-panel" id="tab-sheet">
+      <p style="font-size:.85rem;color:var(--text2);margin-bottom:12px;line-height:1.65">Generate a single composite image with equally-spaced frames — useful for video previews and shot lists.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Columns</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="sheet-cols">
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rows</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="sheet-rows">
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONVERT BTN -->
+    <div class="convert-wrap">
+      <button id="convert-btn" disabled>Process<span class="sub" id="conv-sub">Add a video to begin</span></button>
+    </div>
+    <div id="prog-wrap">
+      <div class="prog-stage" id="prog-stage"></div>
+      <div class="prog-bar-track"><div class="prog-bar-fill" id="prog-bar"></div></div>
+      <div class="prog-label"><span id="prog-label">Processing…</span><span id="prog-timer">0.00s</span></div>
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="card" id="output-card">
+    <div class="output-header">
+      <div class="output-title">Output</div>
+      <div class="output-stats" id="out-stats"></div>
+      <button class="dl-all-btn" id="dl-zip-btn" style="display:none">⬇ ZIP All</button>
+    </div>
+    <div id="out-content">
+      <div class="out-empty">
+        <svg width="34" height="34" viewBox="0 0 58 58" fill="none" style="opacity:.22"><polygon points="29,3 55,53 3,53" stroke="currentColor" stroke-width="2" fill="none"/><line x1="29" y1="3" x2="9" y2="53" stroke="#ff6b6b" stroke-width="1.2"/><line x1="29" y1="3" x2="36" y2="53" stroke="#4d96ff" stroke-width="1.2"/><line x1="29" y1="3" x2="47" y2="53" stroke="#ffd93d" stroke-width="1.2"/></svg>
+        <span>Output will appear here</span>
+      </div>
+    </div>
+  </div>
+
+</main>
 </div>
 
-<div id="lightbox" onclick="closeLightbox()">
-  <button class="lb-close" onclick="closeLightbox()">✕</button>
+<div id="lightbox" onclick="closeLb()">
+  <button class="lb-close" onclick="closeLb()">✕</button>
   <img id="lb-img" src="" alt="">
 </div>
 <div id="toast"></div>
 
 <script>
-var _pageStart=Date.now();
-'use strict';
+"use strict";
 
-/* BOOT — dismiss overlay, #app always visible */
-(function(){
-  function go(){
-    var b=document.getElementById('boot');
-    if(!b)return;
-    b.style.transition='opacity 0.5s';
-    b.style.opacity='0';
-    setTimeout(function(){
-      b.style.display='none';
-      b.style.visibility='hidden';
-    },520);
-  }
-  // Run after 2.6s — or immediately if page was slow to load
-  var delay=Math.max(0, 2600-(Date.now()-_pageStart));
-  setTimeout(go, delay);
-  // Hard fallback — always fires
-  setTimeout(go, 4000);
-}());
-
-let isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
-function applyDark(d){isDark=d;document.documentElement.setAttribute('data-theme',d?'dark':'light');document.getElementById('theme-icon-moon').style.display=d?'none':'';document.getElementById('theme-icon-sun').style.display=d?'':'none';}
+/* DARK MODE */
+let isDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+function applyDark(d){isDark=d;document.documentElement.setAttribute("data-theme",d?"dark":"light");document.getElementById("icon-moon").style.display=d?"none":"";document.getElementById("icon-sun").style.display=d?"":"";}
 applyDark(isDark);
-document.getElementById('dark-mode-btn').addEventListener('click',()=>applyDark(!isDark));
+document.getElementById("dark-mode-btn").addEventListener("click",()=>applyDark(!isDark));
 
-const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const fmtB=b=>b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(2)+'MB';
-const fmtTime=s=>{const m=Math.floor(s/60),sec=(s%60).toFixed(1);return`${m}:${String(Math.floor(s%60)).padStart(2,'0')}.${(s%1).toFixed(1).slice(2)}`};
+/* HELPERS */
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const fmtB=b=>b<1024?b+"B":b<1048576?(b/1024).toFixed(1)+"KB":(b/1048576).toFixed(2)+"MB";
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const fmtT=s=>{const m=Math.floor(s/60);return m+":"+( s%60).toFixed(1).padStart(4,"0")};
+const fmtTS=s=>{const m=Math.floor(s/60);return m+":"+String(Math.floor(s%60)).padStart(2,"0")};
+const dl=(u,n)=>{const a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),6000)};
 
-let videoFile=null, videoEl=document.getElementById('video-el');
-let frameBlobs=[], gifBlob=null;
+/* STATE */
+let videoFile=null, videoEl=document.getElementById("video-preview");
+let duration=0, trimStart=0, trimEnd=0;
+let isPlaying=false, rafId=null;
+let frameBlobs=[];
+let ffmpegReady=false, ffmpegLoading=false;
+let ffmpegInstance=null;
 
-// Tabs
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
+/* FFMPEG LOADER */
+async function loadFFmpeg(){
+  if(ffmpegReady)return ffmpegInstance;
+  if(ffmpegLoading)return new Promise(res=>{const iv=setInterval(()=>{if(ffmpegReady){clearInterval(iv);res(ffmpegInstance);}},200);});
+  ffmpegLoading=true;
+  setFFmpegStatus("loading","Loading FFmpeg… (~30MB first run)");
+  try{
+    // Load ffmpeg.wasm core
+    await new Promise((res,rej)=>{
+      const s=document.createElement("script");
+      s.src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js";
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);
+    });
+    const {FFmpeg}=FFmpegWASM;
+    ffmpegInstance=new FFmpeg();
+    ffmpegInstance.on("progress",({progress,time})=>{
+      const pct=Math.round(Math.min(progress,1)*100);
+      setP(pct,`Processing… ${pct}%`,"FFmpeg");
+    });
+    ffmpegInstance.on("log",({message})=>{
+      // optional: console.log(message)
+    });
+    await ffmpegInstance.load({
+      coreURL:"https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js",
+    });
+    ffmpegReady=true;ffmpegLoading=false;
+    setFFmpegStatus("ready","FFmpeg ready");
+    return ffmpegInstance;
+  }catch(e){
+    ffmpegLoading=false;
+    setFFmpegStatus("error","FFmpeg failed to load: "+e.message);
+    throw e;
+  }
+}
+
+function setFFmpegStatus(state,msg){
+  const dot=document.getElementById("ffmpeg-dot");
+  const lbl=document.getElementById("ffmpeg-label");
+  if(dot){dot.className="ffmpeg-dot "+state;}
+  if(lbl)lbl.textContent=msg;
+}
+
+// Start loading ffmpeg in background
+setTimeout(()=>loadFFmpeg().catch(()=>{}),1000);
+
+/* TABS */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
     const tab=btn.dataset.tab;
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tab}`));
-    const lbl={'frames':'Extract','gif':'Make GIF','thumb':'Generate Sheet'}[tab]||'Process';
-    document.getElementById('convert-btn').childNodes[0].textContent=lbl;
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+    document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("active",p.id==="tab-"+tab));
+    const labels={convert:"Convert",trim:"Export Trim",audio:"Extract Audio",frames:"Extract Frames",sheet:"Generate Sheet"};
+    document.getElementById("convert-btn").childNodes[0].textContent=labels[tab]||"Process";
   });
 });
 
-// Frame mode select
-document.getElementById('frame-mode').addEventListener('change',function(){
-  document.getElementById('interval-group').style.display=this.value==='interval'?'':'none';
-  document.getElementById('count-group').style.display=this.value==='count'?'':'none';
-  document.getElementById('range-group').style.display=this.value==='range'?'':'none';
+/* FRAME MODE */
+document.getElementById("frame-mode").addEventListener("change",function(){
+  document.getElementById("interval-grp").style.display=this.value==="interval"?"":"none";
+  document.getElementById("count-grp").style.display=this.value==="count"?"":"none";
+  document.getElementById("range-grp").style.display=this.value==="range"?"":"none";
 });
 
-window.setFrameMode=function(mode,val){
-  document.getElementById('frame-mode').value=mode;
-  document.getElementById('frame-mode').dispatchEvent(new Event('change'));
-  if(mode==='interval')document.getElementById('frame-interval').value=val;
-  if(mode==='count')document.getElementById('frame-count').value=val;
+window.setFramePreset=function(mode,val){
+  document.getElementById("frame-mode").value=mode;
+  document.getElementById("frame-mode").dispatchEvent(new Event("change"));
+  if(mode==="interval")document.getElementById("frame-interval").value=val;
+  if(mode==="count")document.getElementById("frame-count").value=val;
 };
 
-document.getElementById('gif-fps').addEventListener('input',function(){document.getElementById('gif-fps-val').textContent=this.value+' fps'});
-document.getElementById('gif-w').addEventListener('input',function(){document.getElementById('gif-w-val').textContent=this.value+'px'});
+/* CRF SLIDER */
+document.getElementById("crf-slider").addEventListener("input",function(){document.getElementById("crf-val").textContent=this.value;});
 
-// File input
-const dropZone=document.getElementById('drop-zone');
-const fileInput=document.getElementById('file-input');
-dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover')});
-dropZone.addEventListener('dragleave',e=>{if(!dropZone.contains(e.relatedTarget))dropZone.classList.remove('dragover')});
-dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');handleVideo(e.dataTransfer.files[0])});
-fileInput.addEventListener('change',()=>{if(fileInput.files[0])handleVideo(fileInput.files[0]);fileInput.value=''});
+/* DROP */
+const dz=document.getElementById("drop-zone");
+const fi=document.getElementById("file-input");
+dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("dragover")});
+dz.addEventListener("dragleave",e=>{if(!dz.contains(e.relatedTarget))dz.classList.remove("dragover")});
+dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("dragover");if(e.dataTransfer.files[0])handleVideo(e.dataTransfer.files[0])});
+fi.addEventListener("change",()=>{if(fi.files[0])handleVideo(fi.files[0]);fi.value="";});
 
 function handleVideo(file){
-  if(!file||!file.type.startsWith('video/'))
-    if(!/\.(mp4|mov|avi|webm|mkv|m4v)$/i.test(file.name)){showToast('Please drop a video file');return;}
   videoFile=file;
   const url=URL.createObjectURL(file);
   videoEl.src=url;
   videoEl.load();
-  document.getElementById('video-preview-wrap').classList.add('visible');
-  document.getElementById('v-size').textContent=fmtB(file.size);
-  document.getElementById('v-fmt').textContent=file.name.split('.').pop().toUpperCase();
+  document.getElementById("file-bar").style.display="flex";
+  document.getElementById("file-bar").innerHTML=`
+    <div class="file-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+    <div class="file-info"><div class="file-name">${esc(file.name)}</div><div class="file-meta">${fmtB(file.size)} · ${file.name.split(".").pop().toUpperCase()}</div></div>
+    <button class="file-clear" onclick="clearVideo()">✕</button>`;
+  document.getElementById("video-preview-wrap").style.display="block";
+  document.getElementById("player-card").style.display="block";
+  document.getElementById("controls-card").style.display="block";
+  document.getElementById("convert-btn").disabled=false;
+  document.getElementById("conv-sub").textContent=file.name.replace(/\.[^/.]+$/,"");
+
   videoEl.onloadedmetadata=()=>{
-    document.getElementById('video-info').classList.add('visible');
-    document.getElementById('v-dur').textContent=`${Math.floor(videoEl.duration/60)}:${String(Math.floor(videoEl.duration%60)).padStart(2,'0')}`;
-    document.getElementById('v-res').textContent=`${videoEl.videoWidth} × ${videoEl.videoHeight}`;
-    document.getElementById('gif-dur').max=Math.min(10,videoEl.duration).toFixed(1);
-    document.getElementById('range-end').placeholder=videoEl.duration.toFixed(1);
-    document.getElementById('controls-card').style.display='block';
-    document.getElementById('convert-btn').disabled=false;
-    document.getElementById('convert-sub').textContent='Ready to extract';
+    duration=videoEl.duration;
+    trimStart=0;trimEnd=duration;
+    document.getElementById("video-info-strip").innerHTML=
+      `<div class="v-stat">Duration: <strong>${fmtTS(duration)}</strong></div>`+
+      `<div class="v-stat">Resolution: <strong>${videoEl.videoWidth}×${videoEl.videoHeight}</strong></div>`+
+      `<div class="v-stat">Size: <strong>${fmtB(file.size)}</strong></div>`+
+      `<div class="v-stat">Format: <strong>${file.name.split(".").pop().toUpperCase()}</strong></div>`;
+    document.getElementById("tport-dur").textContent=fmtTS(duration);
+    document.getElementById("range-end").placeholder=duration.toFixed(1);
+    drawTimeline();updateHandles();updateLabels();
   };
 }
 
-function captureFrame(video,t,maxW){
+window.clearVideo=function(){
+  videoFile=null;videoEl.src="";duration=0;
+  document.getElementById("file-bar").style.display="none";
+  document.getElementById("video-preview-wrap").style.display="none";
+  document.getElementById("player-card").style.display="none";
+  document.getElementById("controls-card").style.display="none";
+  document.getElementById("convert-btn").disabled=true;
+};
+
+/* TIMELINE */
+function drawTimeline(){
+  const outer=document.getElementById("timeline-outer");
+  const canvas=document.getElementById("timeline-canvas");
+  const dpr=window.devicePixelRatio||1;
+  const W=outer.clientWidth||300,H=72;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+"px";canvas.style.height=H+"px";
+  const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);
+  // Dark BG
+  ctx.fillStyle="#180a0a";ctx.fillRect(0,0,W,H);
+  // Frame strip — gradient bars representing time
+  const numBars=W;
+  const gr=ctx.createLinearGradient(0,0,W,0);
+  gr.addColorStop(0,"hsl(16,80%,45%)");gr.addColorStop(0.5,"hsl(30,75%,50%)");gr.addColorStop(1,"hsl(16,80%,45%)");
+  ctx.fillStyle=gr;
+  for(let i=0;i<numBars;i++){
+    const h=(Math.sin(i*0.18)*0.3+0.5+Math.sin(i*0.07)*0.2)*H*0.7;
+    ctx.globalAlpha=0.7;ctx.fillRect(i,H/2-h/2,1,h);
+  }
+  ctx.globalAlpha=1;
+  // Center line
+  ctx.strokeStyle="rgba(255,255,255,0.06)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+}
+
+function pxFromT(t){const W=document.getElementById("timeline-outer").clientWidth||300;return(t/duration)*W;}
+function tFromPx(px){const W=document.getElementById("timeline-outer").clientWidth||300;return Math.max(0,Math.min(duration,(px/W)*duration));}
+
+function updateHandles(){
+  if(!duration)return;
+  const lx=pxFromT(trimStart),rx=pxFromT(trimEnd);
+  document.getElementById("handle-l").style.left=lx+"px";
+  document.getElementById("handle-r").style.left=rx+"px";
+  document.getElementById("trim-region").style.left=lx+"px";
+  document.getElementById("trim-region").style.width=(rx-lx)+"px";
+  document.getElementById("bubble-l").textContent=fmtT(trimStart);
+  document.getElementById("bubble-r").textContent=fmtT(trimEnd);
+  updateLabels();
+}
+
+function updateLabels(){
+  document.getElementById("tl-s").textContent=fmtT(trimStart);
+  document.getElementById("tl-e").textContent=fmtT(trimEnd);
+  document.getElementById("tl-total").textContent=fmtTS(duration);
+}
+
+function setupDrag(el,which){
+  let drag=false;
+  const s=e=>{e.preventDefault();drag=true;document.body.style.userSelect="none";};
+  const m=e=>{
+    if(!drag)return;
+    const rect=document.getElementById("timeline-outer").getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const t=tFromPx(cx-rect.left);
+    if(which==="l"){trimStart=Math.min(t,trimEnd-0.05);videoEl.currentTime=trimStart;}
+    else{trimEnd=Math.max(t,trimStart+0.05);videoEl.currentTime=trimEnd-0.05;}
+    updateHandles();document.getElementById("tport-time").textContent=fmtT(which==="l"?trimStart:trimEnd);
+  };
+  const end=()=>{drag=false;document.body.style.userSelect="";};
+  el.addEventListener("mousedown",s);el.addEventListener("touchstart",s,{passive:false});
+  document.addEventListener("mousemove",m);document.addEventListener("touchmove",m,{passive:false});
+  document.addEventListener("mouseup",end);document.addEventListener("touchend",end);
+}
+setupDrag(document.getElementById("handle-l"),"l");
+setupDrag(document.getElementById("handle-r"),"r");
+
+document.getElementById("timeline-outer").addEventListener("click",function(e){
+  if(!duration)return;
+  const rect=this.getBoundingClientRect();
+  const t=tFromPx(e.clientX-rect.left);
+  videoEl.currentTime=t;
+  document.getElementById("playhead").style.left=pxFromT(t)+"px";
+  document.getElementById("tport-time").textContent=fmtT(t);
+});
+
+window.addEventListener("resize",()=>{if(videoFile){drawTimeline();updateHandles();}});
+
+/* VIDEO PLAYBACK */
+document.getElementById("play-btn").addEventListener("click",()=>{
+  if(isPlaying){videoEl.pause();}
+  else{
+    if(videoEl.currentTime>=trimEnd||videoEl.currentTime<trimStart)videoEl.currentTime=trimStart;
+    videoEl.play();
+  }
+});
+
+videoEl.addEventListener("play",()=>{
+  isPlaying=true;
+  document.getElementById("play-icon").style.display="none";
+  document.getElementById("pause-icon").style.display="";
+  const anim=()=>{
+    if(!isPlaying)return;
+    const t=videoEl.currentTime;
+    document.getElementById("playhead").style.left=pxFromT(t)+"px";
+    document.getElementById("tport-time").textContent=fmtT(t);
+    if(t>=trimEnd){videoEl.pause();videoEl.currentTime=trimStart;}
+    else rafId=requestAnimationFrame(anim);
+  };
+  rafId=requestAnimationFrame(anim);
+});
+
+videoEl.addEventListener("pause",()=>{
+  isPlaying=false;
+  document.getElementById("play-icon").style.display="";
+  document.getElementById("pause-icon").style.display="none";
+  if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+});
+
+videoEl.addEventListener("timeupdate",()=>{
+  document.getElementById("tport-time").textContent=fmtT(videoEl.currentTime);
+});
+
+/* TIMER */
+let timerIv=null,startT=null;
+const startTimer=()=>{startT=performance.now();timerIv=setInterval(()=>{document.getElementById("prog-timer").textContent=((performance.now()-startT)/1000).toFixed(2)+"s";},100);};
+const stopTimer=()=>{clearInterval(timerIv);document.getElementById("prog-timer").textContent=((performance.now()-startT)/1000).toFixed(2)+"s";};
+function setP(pct,label,stage){
+  document.getElementById("prog-bar").style.width=pct+"%";
+  if(label)document.getElementById("prog-label").textContent=label;
+  if(stage)document.getElementById("prog-stage").textContent=stage;
+}
+
+/* FFMPEG HELPER */
+async function runFFmpeg(inputData, inputName, args, outputName){
+  const ff=await loadFFmpeg();
+  const {fetchFile}=FFmpegWASM;
+  await ff.writeFile(inputName, inputData);
+  await ff.exec(args);
+  const data=await ff.readFile(outputName);
+  await ff.deleteFile(inputName);
+  try{await ff.deleteFile(outputName);}catch(e){}
+  return new Uint8Array(data.buffer);
+}
+
+/* CONVERT BUTTON */
+document.getElementById("convert-btn").addEventListener("click",async()=>{
+  if(!videoFile)return;
+  const activeTab=document.querySelector(".tab-btn.active").dataset.tab;
+  const btn=document.getElementById("convert-btn");
+  btn.disabled=true;btn.childNodes[0].textContent="Processing…";
+  videoEl.pause();
+  document.getElementById("prog-wrap").style.display="block";
+  startTimer();setP(2,"Starting…","");
+
+  try{
+    if(activeTab==="convert")await doConvert();
+    else if(activeTab==="trim")await doTrim();
+    else if(activeTab==="audio")await doAudio();
+    else if(activeTab==="frames")await doFrames();
+    else if(activeTab==="sheet")await doSheet();
+  }catch(e){showToast("Error: "+e.message);console.error(e);}
+
+  stopTimer();setP(100,"Done","Complete");
+  btn.disabled=false;
+  const labels={convert:"Convert",trim:"Export Trim",audio:"Extract Audio",frames:"Extract Frames",sheet:"Generate Sheet"};
+  btn.childNodes[0].textContent=labels[activeTab]||"Process";
+  document.getElementById("conv-sub").textContent=videoFile.name.replace(/\.[^/.]+$/,"");
+  if(navigator.vibrate)navigator.vibrate([40,60,100]);
+});
+
+async function getFFmpegInputData(){
+  const {fetchFile}=FFmpegWASM;
+  return fetchFile(videoFile);
+}
+
+async function doConvert(){
+  setP(5,"Loading FFmpeg…","Convert");
+  const ff=await loadFFmpeg();
+  const {fetchFile}=FFmpegWASM;
+  const fmt=document.getElementById("out-fmt").value;
+  const codec=document.getElementById("out-codec").value;
+  const res=document.getElementById("out-res").value;
+  const fps=document.getElementById("out-fps").value;
+  const crf=document.getElementById("crf-slider").value;
+  const noAudio=document.getElementById("no-audio").checked;
+  const useTrim=document.getElementById("use-trim").checked;
+  const inExt=videoFile.name.split(".").pop();
+  const inName="input."+inExt;
+  const outName="output."+fmt;
+  setP(10,"Reading file…","Convert");
+  await ff.writeFile(inName,await fetchFile(videoFile));
+  const args=["-i",inName];
+  if(useTrim&&trimEnd>trimStart){args.push("-ss",trimStart.toFixed(3),"-to",trimEnd.toFixed(3));}
+  // Codec
+  const codecMap={mp4:"libx264",webm:"libvpx-vp9",mkv:"libx264",mov:"libx264",avi:"libx264",flv:"libx264",ts:"libx264","3gp":"libx264",gif:"gif"};
+  const actualCodec=codec==="auto"?(codecMap[fmt]||"libx264"):codec;
+  if(fmt==="gif"){
+    args.push("-vf","fps=10,scale=480:-1:flags=lanczos","-loop","0");
+  }else{
+    if(actualCodec!=="copy")args.push("-c:v",actualCodec);
+    else args.push("-c","copy");
+    if(actualCodec!=="copy"&&fmt!=="gif"){args.push("-crf",crf);}
+    if(res!=="original"){const[w,h]=res.split("x");args.push("-vf","scale="+w+":"+h);}
+    if(fps!=="original")args.push("-r",fps);
+    if(noAudio)args.push("-an");
+    else if(actualCodec!=="copy"){
+      if(fmt==="webm")args.push("-c:a","libopus");
+      else args.push("-c:a","aac","-b:a","192k");
+    }
+  }
+  args.push("-y",outName);
+  setP(15,"Converting…","FFmpeg");
+  await ff.exec(args);
+  setP(90,"Saving…","");
+  const data=await ff.readFile(outName);
+  await ff.deleteFile(inName);try{await ff.deleteFile(outName);}catch(e){}
+  const mimes={mp4:"video/mp4",webm:"video/webm",mkv:"video/x-matroska",mov:"video/quicktime",avi:"video/x-msvideo",flv:"video/x-flv",ts:"video/mp2t","3gp":"video/3gpp",gif:"image/gif"};
+  const blob=new Blob([data.buffer],{type:mimes[fmt]||"video/mp4"});
+  const base=videoFile.name.replace(/\.[^/.]+$/,"");
+  const outFile=base+"."+fmt;
+  renderSingle({blob,name:outFile,meta:fmtB(blob.size)+" · "+fmt.toUpperCase(),isVideo:fmt!=="gif"});
+  document.getElementById("out-stats").textContent=fmtB(blob.size);
+}
+
+async function doTrim(){
+  setP(5,"Loading FFmpeg…","Trim");
+  const ff=await loadFFmpeg();
+  const {fetchFile}=FFmpegWASM;
+  const fmt=document.getElementById("trim-fmt").value;
+  const encode=document.getElementById("trim-encode").value;
+  const inExt=videoFile.name.split(".").pop();
+  const inName="input."+inExt;
+  const outName="trimmed."+fmt;
+  setP(10,"Reading file…","Trim");
+  await ff.writeFile(inName,await fetchFile(videoFile));
+  const args=["-i",inName,"-ss",trimStart.toFixed(3),"-to",trimEnd.toFixed(3)];
+  if(encode==="copy")args.push("-c","copy");
+  else{
+    if(fmt==="webm")args.push("-c:v","libvpx-vp9","-c:a","libopus");
+    else args.push("-c:v","libx264","-c:a","aac","-crf","23");
+  }
+  args.push("-y",outName);
+  setP(15,"Trimming…","FFmpeg");
+  await ff.exec(args);
+  setP(90,"Saving…","");
+  const data=await ff.readFile(outName);
+  await ff.deleteFile(inName);try{await ff.deleteFile(outName);}catch(e){}
+  const blob=new Blob([data.buffer],{type:"video/"+fmt});
+  const base=videoFile.name.replace(/\.[^/.]+$/,"");
+  const dur=trimEnd-trimStart;
+  renderSingle({blob,name:base+"_trimmed."+fmt,meta:fmtTS(dur)+" clip · "+fmtB(blob.size),isVideo:true});
+  document.getElementById("out-stats").textContent=fmtTS(dur)+" · "+fmtB(blob.size);
+}
+
+async function doAudio(){
+  setP(5,"Loading FFmpeg…","Audio");
+  const ff=await loadFFmpeg();
+  const {fetchFile}=FFmpegWASM;
+  const fmt=document.getElementById("audio-fmt").value;
+  const bitrate=document.getElementById("audio-bitrate").value;
+  const useTrim=document.getElementById("audio-use-trim").checked;
+  const inExt=videoFile.name.split(".").pop();
+  const inName="input."+inExt;
+  const outName="audio."+fmt;
+  setP(10,"Reading file…","Audio");
+  await ff.writeFile(inName,await fetchFile(videoFile));
+  const args=["-i",inName];
+  if(useTrim&&trimEnd>trimStart)args.push("-ss",trimStart.toFixed(3),"-to",trimEnd.toFixed(3));
+  args.push("-vn");
+  const codecMap={mp3:"libmp3lame",wav:"pcm_s16le",aac:"aac",ogg:"libvorbis",flac:"flac"};
+  args.push("-c:a",codecMap[fmt]||"aac");
+  if(["mp3","aac","ogg"].includes(fmt))args.push("-b:a",bitrate);
+  args.push("-y",outName);
+  setP(15,"Extracting audio…","FFmpeg");
+  await ff.exec(args);
+  setP(90,"Saving…","");
+  const data=await ff.readFile(outName);
+  await ff.deleteFile(inName);try{await ff.deleteFile(outName);}catch(e){}
+  const mimes={mp3:"audio/mpeg",wav:"audio/wav",aac:"audio/aac",ogg:"audio/ogg",flac:"audio/flac"};
+  const blob=new Blob([data.buffer],{type:mimes[fmt]||"audio/mpeg"});
+  const base=videoFile.name.replace(/\.[^/.]+$/,"");
+  renderSingle({blob,name:base+"."+fmt,meta:fmtB(blob.size)+" · "+fmt.toUpperCase(),isAudio:true});
+  document.getElementById("out-stats").textContent=fmtB(blob.size);
+}
+
+async function doFrames(){
+  if(!videoFile||!videoEl.duration)return;
+  const dur=videoEl.duration;
+  const fmt=document.getElementById("frame-fmt").value;
+  const maxW=parseInt(document.getElementById("frame-width").value)||0;
+  const mode=document.getElementById("frame-mode").value;
+  const mime={jpeg:"image/jpeg",png:"image/png",webp:"image/webp"}[fmt]||"image/jpeg";
+  let times=[];
+  if(mode==="interval"){const iv=parseFloat(document.getElementById("frame-interval").value)||1;for(let t=0;t<dur;t+=iv)times.push(Math.min(t,dur-0.05));}
+  else if(mode==="count"){const n=parseInt(document.getElementById("frame-count").value)||12;for(let i=0;i<n;i++)times.push(dur*(i/(n-1||1)));}
+  else{const ts=parseFloat(document.getElementById("range-start").value)||0;const te=parseFloat(document.getElementById("range-end").value)||dur;const iv=parseFloat(document.getElementById("range-iv").value)||1;for(let t=ts;t<=te;t+=iv)times.push(Math.min(t,dur-0.05));}
+  times=times.slice(0,150);
+  frameBlobs=[];const items=[];
+  for(let i=0;i<times.length;i++){
+    setP(Math.round(i/times.length*100),"Frame "+(i+1)+" of "+times.length+"…","Frames");
+    const canvas=await captureFrame(videoEl,times[i],maxW);
+    const blob=await new Promise(res=>canvas.toBlob(res,mime,0.88));
+    const url=URL.createObjectURL(blob);
+    const name="frame_"+String(i+1).padStart(4,"0")+"_"+times[i].toFixed(2)+"s."+fmt;
+    frameBlobs.push({blob,url,name});items.push({url,name,time:times[i],blob});
+    await sleep(8);
+  }
+  renderFrameGrid(items);
+  document.getElementById("dl-zip-btn").style.display=items.length>1?"":"none";
+  document.getElementById("out-stats").textContent=items.length+" frames · "+fmtB(frameBlobs.reduce((s,f)=>s+f.blob.size,0))+" total";
+}
+
+async function doSheet(){
+  if(!videoFile||!videoEl.duration)return;
+  const cols=parseInt(document.getElementById("sheet-cols").value)||4;
+  const rows=parseInt(document.getElementById("sheet-rows").value)||4;
+  const total=cols*rows;
+  const dur=videoEl.duration;
+  const times=Array.from({length:total},(_,i)=>dur*(i/(total-1||1)));
+  const tW=Math.floor(videoEl.videoWidth/cols)||160;
+  const tH=Math.floor(videoEl.videoHeight*tW/videoEl.videoWidth)||90;
+  const sheet=document.createElement("canvas");sheet.width=tW*cols;sheet.height=tH*rows;
+  const ctx=sheet.getContext("2d");ctx.fillStyle="#000";ctx.fillRect(0,0,sheet.width,sheet.height);
+  for(let i=0;i<times.length;i++){
+    setP(Math.round(i/times.length*100),"Frame "+(i+1)+" of "+times.length+"…","Sheet");
+    const canvas=await captureFrame(videoEl,times[i],tW);
+    const col=i%cols,row=Math.floor(i/cols);
+    ctx.drawImage(canvas,col*tW,row*tH,tW,tH);
+    ctx.fillStyle="rgba(0,0,0,0.5)";ctx.fillRect(col*tW,row*tH+tH-18,tW,18);
+    ctx.fillStyle="#fff";ctx.font=Math.max(9,Math.round(tH*0.14))+"px monospace";
+    ctx.fillText(fmtTS(times[i]),col*tW+4,row*tH+tH-4);
+    await sleep(10);
+  }
+  const blob=await new Promise(res=>sheet.toBlob(res,"image/jpeg",0.9));
+  const url=URL.createObjectURL(blob);
+  const base=videoFile.name.replace(/\.[^/.]+$/,"");
+  document.getElementById("out-content").innerHTML=`
+    <div style="padding:12px">
+      <img src="${url}" style="width:100%;border-radius:10px;cursor:zoom-in;display:block;margin-bottom:10px" onclick="openLb('${url}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span style="font-size:.8rem;color:var(--text3)">${cols}×${rows} grid · ${sheet.width}×${sheet.height}px · ${fmtB(blob.size)}</span>
+        <button class="out-dl" onclick="dl('${url}','${esc(base)}_sheet.jpg')">⬇ Download Sheet</button>
+      </div>
+    </div>`;
+  document.getElementById("out-stats").textContent=cols+"×"+rows+" · "+fmtB(blob.size);
+  document.getElementById("dl-zip-btn").style.display="none";
+}
+
+async function captureFrame(video,t,maxW){
   return new Promise(res=>{
     video.currentTime=t;
     video.onseeked=()=>{
       const ratio=maxW&&video.videoWidth>maxW?maxW/video.videoWidth:1;
-      const w=Math.round(video.videoWidth*ratio);
-      const h=Math.round(video.videoHeight*ratio);
-      const c=document.createElement('canvas');c.width=w;c.height=h;
-      c.getContext('2d').drawImage(video,0,0,w,h);
-      res(c);
-      video.onseeked=null;
+      const w=Math.round(video.videoWidth*ratio),h=Math.round(video.videoHeight*ratio);
+      const c=document.createElement("canvas");c.width=w;c.height=h;
+      c.getContext("2d").drawImage(video,0,0,w,h);
+      res(c);video.onseeked=null;
     };
   });
 }
 
-let timerIv=null,startT=null;
-const startTimer=()=>{startT=performance.now();timerIv=setInterval(()=>{document.getElementById('prog-timer').textContent=((performance.now()-startT)/1000).toFixed(2)+'s'},50)};
-const stopTimer=()=>{clearInterval(timerIv);document.getElementById('prog-timer').textContent=((performance.now()-startT)/1000).toFixed(2)+'s'};
-function setProgress(pct,label,stage=''){document.getElementById('prog-bar').style.width=pct+'%';document.getElementById('prog-label').textContent=label;if(stage)document.getElementById('prog-stage').textContent=stage;}
-
-document.getElementById('convert-btn').addEventListener('click',async()=>{
-  if(!videoFile||!videoEl.duration)return;
-  const activeTab=document.querySelector('.tab-btn.active').dataset.tab;
-  const btn=document.getElementById('convert-btn');
-  btn.disabled=true;btn.childNodes[0].textContent='Processing…';
-  document.getElementById('progress-wrap').style.display='block';
-  document.getElementById('output-empty').style.display='none';
-  document.getElementById('frames-grid').innerHTML='';
-  document.getElementById('output-single').style.display='none';
-  document.getElementById('dl-zip-btn').style.display='none';
-  startTimer();
-
-  const dur=videoEl.duration;
-  const fmt=document.getElementById('frame-fmt').value;
-  const maxW=parseInt(document.getElementById('frame-width').value)||0;
-  const mime={png:'image/png',jpeg:'image/jpeg',webp:'image/webp'}[fmt]||'image/jpeg';
-  const ext=fmt;
-
-  try{
-    if(activeTab==='frames'){
-      const mode=document.getElementById('frame-mode').value;
-      let times=[];
-      if(mode==='interval'){
-        const iv=parseFloat(document.getElementById('frame-interval').value)||1;
-        for(let t=0;t<dur;t+=iv)times.push(Math.min(t,dur-0.05));
-      }else if(mode==='count'){
-        const n=parseInt(document.getElementById('frame-count').value)||12;
-        for(let i=0;i<n;i++)times.push(dur*(i/(n-1||1)));
-      }else{
-        const ts=parseFloat(document.getElementById('range-start').value)||0;
-        const te=parseFloat(document.getElementById('range-end').value)||dur;
-        const iv=parseFloat(document.getElementById('range-interval').value)||1;
-        for(let t=ts;t<=te;t+=iv)times.push(Math.min(t,dur-0.05));
-      }
-      times=times.slice(0,150);
-      frameBlobs=[];
-      const items=[];
-      for(let i=0;i<times.length;i++){
-        setProgress(Math.round(i/times.length*100),`Extracting frame ${i+1} of ${times.length}…`,'Frames');
-        const canvas=await captureFrame(videoEl,times[i],maxW);
-        const blob=await new Promise(res=>canvas.toBlob(res,mime,0.88));
-        const url=URL.createObjectURL(blob);
-        frameBlobs.push({blob,url,name:`frame_${String(i+1).padStart(4,'0')}_${times[i].toFixed(2)}s.${ext}`});
-        items.push({url,name:frameBlobs[frameBlobs.length-1].name,time:times[i],blob});
-        await sleep(8);
-      }
-      renderFrameGrid(items);
-      document.getElementById('dl-zip-btn').style.display=items.length>1?'':'none';
-      document.getElementById('output-stats').textContent=`${items.length} frames · ${fmtB(frameBlobs.reduce((s,f)=>s+f.blob.size,0))} total`;
-
-    }else if(activeTab==='gif'){
-      const gStart=parseFloat(document.getElementById('gif-start').value)||0;
-      const gDur=Math.min(10,parseFloat(document.getElementById('gif-dur').value)||3);
-      const fps=parseInt(document.getElementById('gif-fps').value)||12;
-      const gW=parseInt(document.getElementById('gif-w').value)||400;
-      const total=Math.ceil(gDur*fps);
-      const frames=[];
-      for(let i=0;i<total;i++){
-        const t=gStart+i/fps;
-        setProgress(Math.round(i/total*100),`Capturing frame ${i+1} of ${total}…`,'GIF');
-        const canvas=await captureFrame(videoEl,t,gW);
-        const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-        frames.push({blob,canvas});
-        await sleep(6);
-      }
-      setProgress(90,'Building GIF…','Encoding');
-      // Output as WebP sequence (true GIF needs encoder lib); deliver as ZIP of frames or WebP
-      // For a practical result: create a contact sheet of all frames labeled as animated preview
-      const ratio=videoEl.videoHeight/videoEl.videoWidth;
-      const h=Math.round(gW*ratio);
-      const composite=document.createElement('canvas');
-      composite.width=gW;composite.height=h;
-      const ctx=composite.getContext('2d');
-      // We'll deliver individual frames as a ZIP, and show a static preview of frame 1
-      ctx.drawImage(frames[0].canvas,0,0,gW,h);
-      const previewBlob=await new Promise(res=>composite.toBlob(res,'image/jpeg',0.9));
-      const previewUrl=URL.createObjectURL(previewBlob);
-      // Create ZIP of all frames for user to assemble into GIF
-      document.getElementById('output-single').style.display='block';
-      document.getElementById('output-single').innerHTML=`
-        <div style="padding:16px">
-          <img src="${previewUrl}" style="width:100%;max-height:280px;border-radius:10px;object-fit:contain;background:#000;display:block;margin-bottom:12px">
-          <p style="font-size:.82rem;color:var(--text3);margin-bottom:12px;line-height:1.6">${total} frames captured at ${fps}fps over ${gDur}s. Download as ZIP to assemble into an animated GIF using a tool like ezgif.com, Photoshop, or GIMP.</p>
-          <button class="out-dl-big" id="gif-zip-btn">⬇ Download ${total} Frames as ZIP</button>
-        </div>`;
-      frameBlobs=frames.map((f,i)=>({blob:f.blob,url:URL.createObjectURL(f.blob),name:`gif_frame_${String(i+1).padStart(4,'0')}.png`}));
-      document.getElementById('gif-zip-btn').addEventListener('click',()=>downloadZip(frameBlobs));
-      document.getElementById('output-stats').textContent=`${total} frames · ${fps}fps · ${gDur}s clip`;
-
-    }else if(activeTab==='thumb'){
-      const cols=parseInt(document.getElementById('thumb-cols').value)||4;
-      const rows=parseInt(document.getElementById('thumb-rows').value)||4;
-      const total=cols*rows;
-      const times=Array.from({length:total},(_,i)=>dur*i/(total-1||1));
-      const thumbW=Math.floor(videoEl.videoWidth/cols)||160;
-      const thumbH=Math.floor(videoEl.videoHeight*thumbW/videoEl.videoWidth)||90;
-      const sheetW=thumbW*cols, sheetH=thumbH*rows;
-      const sheet=document.createElement('canvas');sheet.width=sheetW;sheet.height=sheetH;
-      const ctx=sheet.getContext('2d');
-      ctx.fillStyle='#000';ctx.fillRect(0,0,sheetW,sheetH);
-      for(let i=0;i<times.length;i++){
-        setProgress(Math.round(i/times.length*100),`Compositing frame ${i+1} of ${times.length}…`,'Sheet');
-        const canvas=await captureFrame(videoEl,times[i],thumbW);
-        const col=i%cols, row=Math.floor(i/cols);
-        ctx.drawImage(canvas,col*thumbW,row*thumbH,thumbW,thumbH);
-        // Timestamp label
-        ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(col*thumbW,row*thumbH+thumbH-18,thumbW,18);
-        ctx.fillStyle='#fff';ctx.font=`${Math.max(10,thumbH*0.13)}px monospace`;
-        ctx.fillText(fmtTime2(times[i]),col*thumbW+4,row*thumbH+thumbH-4);
-        await sleep(10);
-      }
-      const sheetBlob=await new Promise(res=>sheet.toBlob(res,'image/jpeg',0.9));
-      const sheetUrl=URL.createObjectURL(sheetBlob);
-      document.getElementById('output-single').style.display='block';
-      document.getElementById('output-single').innerHTML=`
-        <div class="output-single">
-          <img src="${sheetUrl}" style="width:100%;border-radius:10px;display:block;margin-bottom:0;cursor:zoom-in" onclick="openLb('${sheetUrl}')">
-        </div>
-        <div style="padding:0 16px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div style="flex:1;font-size:.8rem;color:var(--text3)">${cols}×${rows} grid · ${sheetW}×${sheetH}px · ${fmtB(sheetBlob.size)}</div>
-          <button class="out-dl-big" onclick="dlBlob('${sheetUrl}','thumbnail_sheet.jpg')">⬇ Download Sheet</button>
-        </div>`;
-      document.getElementById('output-stats').textContent=`${cols}×${rows} grid · ${fmtB(sheetBlob.size)}`;
-    }
-  }catch(e){
-    showToast('Error: '+e.message);console.error(e);
+function renderSingle({blob,name,meta,isVideo,isAudio}){
+  const url=URL.createObjectURL(blob);
+  const ico=isAudio
+    ?"<path d=\"M9 18V5l12-2v13\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><circle cx=\"18\" cy=\"16\" r=\"3\"/>"
+    :"<polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/>";
+  document.getElementById("out-content").innerHTML=`
+    <div class="out-single">
+      <div class="out-row">
+        <div class="out-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${ico}</svg></div>
+        <div class="out-info"><div class="out-name">${esc(name)}</div><div class="out-meta">${meta||""}</div></div>
+        ${isAudio?`<button class="out-dl" id="preview-play" style="margin-right:8px;background:hsl(var(--ah),50%,92%);color:var(--accent)">▶</button>`:""}
+        <button class="out-dl" onclick="dl('${url}','${esc(name)}')">⬇ Save</button>
+      </div>
+    </div>`;
+  document.getElementById("dl-zip-btn").style.display="none";
+  if(isAudio){
+    let aud=null;
+    document.getElementById("preview-play").addEventListener("click",function(){
+      if(aud){aud.pause();aud=null;this.textContent="▶";return;}
+      aud=new Audio(url);aud.play();this.textContent="⏸";
+      aud.onended=()=>{this.textContent="▶";aud=null;};
+    });
   }
-
-  stopTimer();setProgress(100,'Done','Complete');
-  document.getElementById('output-wrap').scrollIntoView({behavior:'smooth',block:'start'});
-  if(navigator.vibrate)navigator.vibrate([40,60,100]);
-  btn.disabled=false;btn.childNodes[0].textContent={frames:'Extract',gif:'Make GIF',thumb:'Generate Sheet'}[activeTab]||'Extract';
-  document.getElementById('convert-sub').textContent='Ready';
-});
-
-function fmtTime2(s){const m=Math.floor(s/60);return`${m}:${String(Math.floor(s%60)).padStart(2,'0')}`}
+}
 
 function renderFrameGrid(items){
-  const grid=document.getElementById('frames-grid');
+  const grid=document.createElement("div");grid.className="frames-grid";
   grid.innerHTML=items.map(r=>`
-    <div class="output-frame-card">
+    <div class="frame-card">
       <img class="frame-img" src="${r.url}" loading="lazy" onclick="openLb('${r.url}')">
-      <div class="frame-info">
-        <span class="frame-time">${fmtTime2(r.time)}</span>
-        <button class="frame-dl" onclick="dlBlob('${r.url}','${esc(r.name)}')">⬇</button>
+      <div class="frame-label">
+        <span class="frame-time">${fmtTS(r.time)}</span>
+        <button class="frame-dl" onclick="dl('${r.url}','${esc(r.name)}')">⬇</button>
       </div>
-    </div>`).join('');
+    </div>`).join("");
+  document.getElementById("out-content").innerHTML="";
+  document.getElementById("out-content").appendChild(grid);
 }
 
-async function downloadZip(items){
-  showToast('Building ZIP…');
-  await new Promise((res,rej)=>{
-    if(window.fflate){res();return;}
-    const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/fflate.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);
-  });
+/* ZIP */
+async function loadFflate(){
+  if(window.fflate)return;
+  await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/fflate.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+}
+document.getElementById("dl-zip-btn").addEventListener("click",async()=>{
+  if(!frameBlobs.length)return;
+  showToast("Building ZIP…");
+  await loadFflate();
   const zo={};
-  for(const f of items)zo[f.name]=new Uint8Array(await f.blob.arrayBuffer());
+  for(const f of frameBlobs)zo[f.name]=new Uint8Array(await f.blob.arrayBuffer());
   fflate.zip(zo,{level:0},(err,data)=>{
-    if(err){showToast('ZIP failed');return;}
-    const blob=new Blob([data],{type:'application/zip'});
-    dlBlob(URL.createObjectURL(blob),'prism-frames.zip');
-    showToast('ZIP downloaded');
+    if(err){showToast("ZIP failed");return;}
+    const blob=new Blob([data],{type:"application/zip"});
+    dl(URL.createObjectURL(blob),"prism-frames.zip");
+    showToast("ZIP downloaded");
   });
-}
+});
 
-document.getElementById('dl-zip-btn').addEventListener('click',()=>downloadZip(frameBlobs));
+/* LIGHTBOX */
+window.openLb=function(url){document.getElementById("lb-img").src=url;document.getElementById("lightbox").classList.add("open");document.body.style.overflow="hidden";};
+window.closeLb=function(){document.getElementById("lightbox").classList.remove("open");document.body.style.overflow="";setTimeout(()=>{document.getElementById("lb-img").src="";},300);};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLb();});
 
-window.dlBlob=function(url,name){const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a)};
-window.openLb=function(url){document.getElementById('lb-img').src=url;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden'};
-window.closeLightbox=function(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';setTimeout(()=>document.getElementById('lb-img').src='',300)};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
-
+/* TOAST */
 let toastT=null;
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800)}
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2800);}
 </script>
 </body>
 </html>
